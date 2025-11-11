@@ -107,7 +107,7 @@ export const deleteProduct = async (req, res) => {
     if (Array.isArray(existing.images)) {
       for (const rel of existing.images) {
         try {
-          const p = path.join(process.cwd(), rel);
+          const p = path.join(process.cwd(), String(rel));
           if (fs.existsSync(p)) fs.unlinkSync(p);
         } catch (e) { /* ignore */ }
       }

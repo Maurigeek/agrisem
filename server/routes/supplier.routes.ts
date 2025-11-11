@@ -1,4 +1,4 @@
-// server/routes/supplier.routes.js
+// server/routes/supplier.routes.ts
 import express from "express";
 import {
   listProducts,
@@ -35,6 +35,7 @@ addRouteToSwagger("/supplier/products", "post", null, {
   summary: "Créer un nouveau produit (avec images optionnelles)",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   requestBody: {
     description: "Informations du produit + images (multipart/form-data)",
     required: true,
@@ -68,6 +69,7 @@ addRouteToSwagger("/supplier/products/{id}", "patch", null, {
   summary: "Mettre à jour un produit existant",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   parameters: [
     {
       name: "id",
@@ -90,6 +92,7 @@ addRouteToSwagger("/supplier/products/{id}", "delete", null, {
   summary: "Supprimer un produit",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   parameters: [
     {
       name: "id",
@@ -111,6 +114,7 @@ addRouteToSwagger("/supplier/products/{id}/images", "post", null, {
   summary: "Ajouter des images à un produit existant",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   parameters: [
     {
       name: "id",
@@ -120,6 +124,7 @@ addRouteToSwagger("/supplier/products/{id}/images", "post", null, {
       schema: { type: "integer" },
     },
   ],
+  // @ts-ignore
   requestBody: {
     required: true,
     content: {
@@ -159,6 +164,7 @@ addRouteToSwagger("/supplier/orders/{id}/status", "patch", null, {
   summary: "Mettre à jour le statut d’une commande (ex: en cours, livrée)",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   parameters: [
     {
       name: "id",
@@ -180,6 +186,7 @@ addRouteToSwagger("/supplier/orders/{id}/upload-proof", "post", null, {
   summary: "Uploader un justificatif de livraison (preuve, reçu, etc.)",
   tags: ["Supplier"],
   security: [{ BearerAuth: [] }],
+  // @ts-ignore
   parameters: [
     {
       name: "id",
@@ -189,6 +196,7 @@ addRouteToSwagger("/supplier/orders/{id}/upload-proof", "post", null, {
       schema: { type: "integer" },
     },
   ],
+  // @ts-ignore
   requestBody: {
     required: true,
     content: {
