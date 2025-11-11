@@ -1,24 +1,30 @@
 import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import dotenv from "dotenv";
 
-// Dictionnaires dynamiques
+dotenv.config();
+
+// --- Dictionnaires dynamiques ---
 const paths: Record<string, any> = {};
-const components: any = { 
+const components: any = {
   schemas: {},
   securitySchemes: {
     BearerAuth: {
       type: "http",
       scheme: "bearer",
       bearerFormat: "JWT",
-      description: "Entrez votre token JWT ici (sans 'Bearer ')"
-    }
-  }
+      description: "Entrez votre token JWT ici (sans 'Bearer ')",
+    },
+  },
 };
 
-/**
- * Ajoute une route automatiquement à Swagger
- */
+// --- Détection automatique de l’environnement ---
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.SWAGGER_BASE_URL || "https://agrisem.onrender.com/api/v1"
+    : "http://localhost:5001/api/v1";
+
 /**
  * Ajoute une route automatiquement à Swagger
  */
@@ -33,7 +39,6 @@ export const addRouteToSwagger = (
     responses?: Record<number | string, string>;
   } = {}
 ) => {
-  // Nom Swagger-compatible (pas de /)
   const safeName = path.replace(/\//g, "_").replace(/^_/, "");
 
   let jsonSchema = null;
@@ -50,7 +55,7 @@ export const addRouteToSwagger = (
     components.schemas[safeName] = jsonSchema;
   }
 
-  // Formater les réponses
+  // ✅ Formater les réponses
   const formattedResponses = Object.entries(options.responses || {}).reduce(
     (acc, [code, desc]) => {
       acc[code] = { description: desc };
@@ -59,10 +64,9 @@ export const addRouteToSwagger = (
     {} as Record<string, any>
   );
 
-  // Ajouter dynamiquement la route dans paths
   if (!paths[path]) paths[path] = {};
 
-  // ✅ Construction de la définition Swagger
+  // ✅ Définition de la route Swagger
   const routeDef: any = {
     tags: options.tags || ["API"],
     summary: options.summary || "Endpoint",
@@ -70,7 +74,7 @@ export const addRouteToSwagger = (
     responses: formattedResponses,
   };
 
-  // ✅ Ajoute le requestBody uniquement si un schéma existe
+  // ✅ Ajout du corps de requête si un schéma est fourni
   if (jsonSchema) {
     routeDef.requestBody = {
       required: true,
@@ -84,7 +88,6 @@ export const addRouteToSwagger = (
 
   paths[path][method] = routeDef;
 };
-
 
 /**
  * Initialise Swagger avec toutes les routes collectées
@@ -100,8 +103,11 @@ export const setupSwagger = (app: Express) => {
     },
     servers: [
       {
-        url: "http://localhost:5001/api/v1",
-        description: "Serveur de développement",
+        url: BASE_URL,
+        description:
+          process.env.NODE_ENV === "production"
+            ? "Serveur de production Render"
+            : "Serveur de développement local",
       },
     ],
     paths,
@@ -109,5 +115,5 @@ export const setupSwagger = (app: Express) => {
   };
 
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDoc));
-  console.log("📘 Swagger disponible sur http://localhost:5001/api-docs");
+  console.log(`📘 Swagger disponible sur ${BASE_URL.replace('/api/v1', '')}/api-docs`);
 };

@@ -13,19 +13,22 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
+// --- 🌐 Configuration dynamique du domaine ---
+const FRONTEND_URLS = [
+  "http://localhost:5173",                 // Frontend local
+  "https://agrisem.com",                   // Domaine officiel
+  "https://agrisem-backend.onrender.com",  // Instance backend Render (fallback)
+  "https://agrisem-frontend.onrender.com", // Instance frontend Render
+  "https://agrisem.onrender.com"           // Domaine public principal
+];
+
 // --- 🔧 CORS configuration ---
 app.use(cors({
-  origin: [
-    "http://localhost:5173", // Frontend local (Vite)
-    "https://agrisem.com",   // Frontend en production
-    "https://agrisem-backend.onrender.com",
-    "https://agrisem-frontend.onrender.com",
-    "https://agrisem.onrender.com"
-  ],
+  origin: FRONTEND_URLS,
   credentials: true,
 }));
 
-// ---  Body parsing ---
+// --- 🧩 Body parsing ---
 app.use(express.json({
   verify: (req: any, _res, buf) => {
     req.rawBody = buf;
@@ -33,15 +36,13 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
-// ---  Logging middleware ---
+// --- 🧠 Logging middleware ---
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const path = req.path;
-
   const originalJson = res.json;
   let responseBody: any;
 
-  // Capture la réponse JSON pour la log
   res.json = function (body: any) {
     responseBody = body;
     return originalJson.call(this, body);
@@ -62,17 +63,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// --- Routes principales ---
+// --- 🧭 Routes principales ---
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/supplier", supplierRouter);
-// Rendre les fichiers du dossier uploads accessibles publiquement
-// app.use("/uploads", express.static("uploads"));
 
-// Serve static uploads folder publically
+// --- 🖼️ Fichiers publics (uploads) ---
 app.use("/uploads", express.static(path.join(process.cwd(), process.env.UPLOAD_ROOT || "uploads")));
 
-
-// --- Gestion des erreurs globales ---
+// --- 🚨 Gestion des erreurs globales ---
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error("❌ Server Error:", err);
   const status = err.status || 500;
@@ -80,12 +78,19 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-// --- Swagger documentation ---
+// --- 📘 Swagger documentation ---
 setupSwagger(app);
 
-// --- Démarrage du serveur ---
+// --- 🚀 Lancement du serveur ---
 const PORT = process.env.PORT || 5001;
+
+// ✅ Détection automatique de l’URL selon l’environnement
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.RENDER_EXTERNAL_URL || "https://agrisem.onrender.com"
+    : `http://localhost:${PORT}`;
+
 app.listen(PORT, () => {
-  console.log(`[Express] Server running on http://localhost:${PORT}`);
-  console.log(`Swagger Docs available at http://localhost:${PORT}/api-docs`);
+  console.log(`[Express] ✅ Server running on ${BASE_URL}`);
+  console.log(`📘 Swagger Docs available at ${BASE_URL}/api-docs`);
 });
