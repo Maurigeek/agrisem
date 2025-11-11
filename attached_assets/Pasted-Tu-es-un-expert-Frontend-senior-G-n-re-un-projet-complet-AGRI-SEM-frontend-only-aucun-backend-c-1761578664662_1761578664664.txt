@@ -1,0 +1,234 @@
+Tu es un expert Frontend senior. Génère un projet complet “AGRI-SEM” frontend only (aucun backend) conforme à la spécification ci-dessous. Utilise React 18 + Vite + TypeScript + TailwindCSS, React Router, Zustand (état UI/panier), MSW (Mock Service Worker) pour simuler les endpoints REST (mêmes routes que la spec DRF), et Testing Library + Vitest pour quelques tests critiques.
+Le résultat doit être un repo exécutable (npm i && npm run dev) avec données mock réalistes. Pas d’appels réseau réels.
+
+1) Contraintes techniques
+
+Stack : React 18, Vite, TypeScript, TailwindCSS, React Router, Zustand, MSW (mock REST), React Hook Form + Zod, Recharts (graphe), Lucide-react (icônes).
+
+Aucun backend : tous les fetch passent par MSW qui simule les routes DRF listées ci-dessous avec un store en mémoire (et semences auto-générées à partir d’un seed).
+
+Qualité : ESLint + Prettier, chemins alias @/…, components découplés, accessibilité (labels/form), responsive (mobile-first), perfs (lazy, code-splitting, images optimisées).
+
+Tests : au minimum tests des parcours Catalogue→Fiche→Panier→Commande et rendu du Dashboard.
+
+i18n : FR par défaut (architecture prête pour EN).
+
+Thème : Tailwind avec tokens brand (remplaçables facilement).
+
+2) Structure du repo
+agrisem-frontend/
+├─ index.html
+├─ package.json
+├─ vite.config.ts
+├─ tailwind.config.js
+├─ postcss.config.js
+├─ tsconfig.json
+├─ .eslintrc.cjs  .prettierrc
+├─ src/
+│  ├─ app/
+│  │  ├─ router.tsx
+│  │  └─ store.ts (Zustand: ui, cart)
+│  ├─ theme/
+│  │  ├─ globals.css
+│  │  └─ tokens.css (si besoin)
+│  ├─ api/         # client REST simulé + hooks
+│  │  ├─ client.ts (fetch wrapper vers /msw)
+│  │  ├─ products.ts
+│  │  ├─ orders.ts
+│  │  ├─ messages.ts
+│  │  ├─ articles.ts
+│  │  └─ weather.ts
+│  ├─ mocks/       # MSW
+│  │  ├─ handlers.ts
+│  │  ├─ db.ts (fausses tables en mémoire)
+│  │  ├─ seed.ts (génère cultures/variétés/produits)
+│  │  └─ browser.ts
+│  ├─ types/
+│  │  └─ dto.ts    # types alignés au schéma
+│  ├─ components/
+│  │  ├─ ui/ (boutons, input, badge, modal, pagination…)
+│  │  ├─ product/
+│  │  │  ├─ ProductCard.tsx  ProductFilters.tsx  StockBadge.tsx
+│  │  ├─ cart/
+│  │  │  ├─ CartDrawer.tsx  OrderStepper.tsx  PaymentProofUploader.tsx
+│  │  ├─ chat/
+│  │  │  ├─ ThreadList.tsx  ChatBox.tsx
+│  │  └─ weather/
+│  │     └─ WeatherWidget.tsx  AlertConfigurator.tsx
+│  ├─ pages/
+│  │  ├─ Home.tsx
+│  │  ├─ Catalog.tsx
+│  │  ├─ Product.tsx
+│  │  ├─ Checkout.tsx
+│  │  ├─ Messaging.tsx
+│  │  ├─ Dashboard.tsx
+│  │  ├─ Articles.tsx  ArticleDetail.tsx
+│  │  ├─ AuthLogin.tsx  AuthRegister.tsx  AuthReset.tsx
+│  │  ├─ SupplierProducts.tsx  SupplierOrders.tsx
+│  │  └─ Admin.tsx (stub minimal)
+│  ├─ main.tsx
+│  └─ App.tsx
+└─ tests/
+   ├─ catalog.spec.tsx
+   ├─ checkout.spec.tsx
+   └─ dashboard.spec.tsx
+
+3) Thème Tailwind (personnalisable)
+
+Dans tailwind.config.js :
+
+export default {
+  content: ["./index.html","./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        brand: { DEFAULT: "#1b8f3a", dark: "#0f5c24", light: "#e6f5eb", accent: "#f7b500" },
+      }
+    }
+  },
+  plugins: [],
+}
+
+
+Utilise systématiquement bg-brand, text-brand-dark, bg-brand-light, text-brand-accent.
+
+4) Données & types (mock)
+
+Respecte ces types TS (alignés au schéma) dans src/types/dto.ts :
+
+export type Role = "PRODUCER" | "SUPPLIER" | "ADMIN";
+export type OrderStatus = "PENDING"|"CONFIRMED"|"PREPARING"|"SHIPPED"|"DELIVERED"|"CANCELLED";
+
+export interface User { id:number; email:string; phone?:string; role:Role; firstName:string; lastName:string; orgName?:string; isVerified:boolean; isSupplierVerified?:boolean; }
+export interface Address { id:number; userId:number; label:string; country:string; region:string; city:string; latitude?:number; longitude?:number; isDefault:boolean; }
+export interface Culture { id:number; name:string; code:string; }
+export interface Variety { id:number; cultureId:number; name:string; climateSuitability:Record<string,unknown>; description?:string; maturityDays:number; }
+export interface Product { id:number; supplierId:number; varietyId:number; title:string; sku:string; priceCents:number; currency:string; stock:number; minOrderQty:number; images:string[]; specs:Record<string,unknown>; status:"DRAFT"|"ACTIVE"|"BLOCKED"; createdAt:string; }
+export interface Cart { id:number; userId:number; status:"ACTIVE"|"ORDERED"; }
+export interface CartItem { id:number; cartId:number; productId:number; qty:number; }
+export interface Order { id:number; buyerId:number; supplierId:number; orderNumber:string; totalCents:number; currency:string; paymentMethod:"CASH"|"MOBILE_MONEY"|"BANK_TRANSFER"; paymentProofUrl?:string; status:OrderStatus; shippingAddressId:number; notes?:string; createdAt:string; updatedAt:string; }
+export interface OrderItem { id:number; orderId:number; productId:number; title:string; priceCents:number; qty:number; }
+export interface Thread { id:number; topicType:"PRODUCT"|"ORDER"; topicId:number; buyerId:number; supplierId:number; lastMessageAt:string; }
+export interface Message { id:number; threadId:number; senderId:number; body:string; attachments?:string[]; createdAt:string; }
+export interface Article { id:number; title:string; slug:string; bodyMd:string; tags:string[]; authorId:number; publishedAt?:string; status:"DRAFT"|"PUBLISHED"; }
+export interface WeatherAlert { id:number; userId:number; type:"DROUGHT"|"HEAVY_RAIN"|"DISEASE_RISK"; threshold:Record<string,unknown>; channel:"EMAIL"|"SMS"|"BOTH"; isActive:boolean; lastSentAt?:string; }
+
+5) Faux endpoints (MSW) — mêmes routes que DRF
+
+Implémente dans mocks/handlers.ts les routes GET/POST/PATCH suivantes (retourne des JSON conformes aux types) :
+
+Auth & Profil :
+POST /api/v1/auth/jwt/create/, POST /auth/jwt/refresh/, POST /auth/users/, GET /auth/users/me/
+
+Catalogue :
+GET /cultures/, GET /cultures/:id/varieties,
+GET /products, GET /products/:id, POST /products, PUT/PATCH /products/:id, PATCH /products/:id/status
+
+Panier & Commandes :
+GET /cart, POST /cart/items, PUT /cart/items/:id, DELETE /cart/items/:id,
+POST /orders, GET /orders, GET /orders/:id, PATCH /orders/:id/status
+
+Messagerie :
+POST /threads, GET /threads, GET /threads/:id/messages, POST /threads/:id/messages
+
+Conseils & Alertes :
+GET /advice/weather, POST /alerts, GET /alerts, PATCH /alerts/:id
+
+Articles :
+GET /articles, GET /articles/:slug, POST /articles, PUT /articles/:id, PATCH /articles/:id/status
+
+Admin (stub) :
+GET /admin/suppliers/pending, PATCH /admin/suppliers/:id/verify, PATCH /admin/products/:id/block, GET /admin/stats
+
+Important : MSW doit renvoyer pagination (page, page_size, count, results), filtres (cultureId, varietyId, q, minPrice, maxPrice, ordering), et simuler des latences (setTimeout) pour un comportement réaliste.
+
+6) Pages à livrer (UI complètes)
+
+Accueil : Hero, 3 stats, WeatherWidget (prévision 7j + pluie cumulée), “Conseil du jour”, CTA “Parcourir le catalogue”.
+
+Catalogue : recherche, filtres (culture), cartes produit (image, titre, prix, stock, climat, maturité), pagination; mobile-friendly.
+
+Fiche produit : galerie (image principale + miniatures), specs (germination, origine…), CTA “Ajouter au panier” & “Contacter le fournisseur”, bloc disponibilité + livraison.
+
+Panier/Commande : liste items, formulaire adresse, paiement hors-ligne (radio: Cash/MoMo/Virement), upload preuve (simulé), récap total, bouton “Confirmer”.
+
+Messagerie : liste threads (non-lus), panneau chat (bulles, pièces jointes simulées), polling 10 s (interval setTimeout) via MSW.
+
+Dashboard : 4 KPIs, graphe ventes 10 mois (Recharts), activité récente.
+
+Articles : liste + détail (markdown rendu), recherche par tag.
+
+Auth : Login, Register, Reset (simulés via MSW), état connecté en mémoire.
+
+Mode Fournisseur :
+
+Mes produits (table + cartes, CRUD complet via MSW, upload image simulé)
+
+Commandes reçues (table, action PATCH status → CONFIRMED → SHIPPED → DELIVERED)
+
+Admin (stub) : Validation fournisseurs (switch), blocage produit.
+
+7) Composants obligatoires
+
+ProductCard, ProductFilters, StockBadge, PriceRangeSlider (filtre prix simple même si mock),
+
+CartDrawer, OrderStepper, PaymentProofUploader,
+
+ThreadList, ChatBox,
+
+WeatherWidget, AlertConfigurator,
+
+DashboardTiles, SimpleChart,
+
+Header, Footer, EmptyState, Pagination, FormField.
+
+8) États & flux
+
+Zustand : état UI (dark mode toggle optionnel), cart (add/update/remove/clear), auth (token MSW fictif).
+
+Formulaires : React Hook Form + Zod (validation), messages d’erreur clairs.
+
+Accessibilité : labels, rôles ARIA, focus visible, contrastes suffisants.
+
+Responsive : ≥ 320px → desktop, grille CSS propre, pas d’horizontal scroll.
+
+9) Seed & réalisme
+
+Génère 6 cultures (maïs, riz, tomate, oignon, gombo, piment), 12 variétés, ≥ 40 produits (images libres picsum/unsplash), stocks variés, prix en XOF, maturité, climat.
+
+3 fournisseurs factices, 1 admin, 2 producteurs.
+
+Threads & messages plausibles, quelques commandes avec statuts différents.
+
+Articles (3-5) “bonnes pratiques” en markdown.
+
+10) Scripts NPM
+
+dev, build, preview, test, lint, format.
+
+Au démarrage dev: enregistre MSW (worker.start()), et précharge le seed.
+
+11) Tests (Vitest + Testing Library)
+
+catalog.spec.tsx : filtrage et navigation vers fiche produit.
+
+checkout.spec.tsx : ajout panier → saisie adresse → choix paiement → confirmation.
+
+dashboard.spec.tsx : rendu KPIs et graphe.
+
+12) Livrables attendus
+
+Code complet et propre, prêt à lancer :
+
+npm i
+npm run dev
+# ouvre http://localhost:5173
+
+
+README avec : stack, scripts, structure, comment changer le thème (tokens Tailwind), comment éditer le seed MSW.
+
+13) Spécification fonctionnelle à respecter (extrait)
+
+(Reprends fidèlement les points “Portée fonctionnelle”, “Parcours UJ-1/UJ-2/UJ-3”, et la liste d’endpoints DRF fournie ci-dessus. Pas d’omissions sur les champs affichés dans les pages clés. Paiement = hors-ligne avec upload preuve simulé.)
+
+Important : Aucune dépendance backend. Toute la donnée vient de MSW + seed. Soigne l’UX (états de chargement, vides, erreurs mock). Conserve un style sobre, agricole, lisible. Respecte le thème brand.
