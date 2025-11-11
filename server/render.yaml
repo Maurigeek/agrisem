@@ -2,14 +2,28 @@ services:
   - type: web
     name: agrisem-backend
     env: node
-    buildCommand: "cd server && npm install && npm run build"
-    startCommand: "cd server && npm start"
+    rootDir: server
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    autoDeploy: true
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
       - key: PORT
         value: 10000
-      - key: NODE_ENV
-        value: production
