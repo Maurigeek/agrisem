@@ -9,82 +9,59 @@ import { setupSwagger } from "./swagger.js";
 import path from "path";
 
 dotenv.config();
-
 const app = express();
 const prisma = new PrismaClient();
 
-// --- 🌐 Configuration dynamique du domaine ---
-const FRONTEND_URLS = [
-  "http://localhost:5173",                 // Frontend local
-  "https://agrisem.com",                   // Domaine officiel
-  "https://agrisem-backend.onrender.com",  // Instance backend Render (fallback)
-  "https://agrisem-frontend.onrender.com", // Instance frontend Render
-  "https://agrisem.onrender.com"           // Domaine public principal
+// --- 🌍 FRONTEND autorisés (production + local)
+const allowedOrigins = [
+  "http://localhost:5173",                // local dev
+  "https://agrisem.com",                  // domaine officiel
+  "https://agrisem-frontend.onrender.com",// frontend Render
+  "https://agrisem.onrender.com"          // backend Render (Swagger)
 ];
 
-// --- 🔧 CORS configuration ---
+// --- 🔧 Middleware CORS
 app.use(cors({
-  origin: FRONTEND_URLS,
+  origin: (origin, callback) => {
+    // Autorise les requêtes sans Origin (Swagger, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn("❌ Requête bloquée par CORS:", origin);
+    return callback(new Error("CORS non autorisé"), false);
+  },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-// --- 🧩 Body parsing ---
-app.use(express.json({
-  verify: (req: any, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express.urlencoded({ extended: false }));
+// --- ✅ Parsing JSON normal (pas de verify)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// --- 🧠 Logging middleware ---
+// --- 🧠 Middleware logging simple
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  const path = req.path;
-  const originalJson = res.json;
-  let responseBody: any;
-
-  res.json = function (body: any) {
-    responseBody = body;
-    return originalJson.call(this, body);
-  };
-
-  res.on("finish", () => {
-    if (path.startsWith("/api")) {
-      const duration = Date.now() - start;
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (responseBody && typeof responseBody === "object") {
-        const preview = JSON.stringify(responseBody).slice(0, 100);
-        logLine += ` :: ${preview}${preview.length === 100 ? "…" : ""}`;
-      }
-      console.log(logLine);
-    }
-  });
-
+  console.log(`[${req.method}] ${req.path}`);
   next();
 });
 
-// --- 🧭 Routes principales ---
+// --- 🔗 Routes principales
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/supplier", supplierRouter);
 
-// --- 🖼️ Fichiers publics (uploads) ---
+// --- 🖼️ Fichiers publics
 app.use("/uploads", express.static(path.join(process.cwd(), process.env.UPLOAD_ROOT || "uploads")));
 
-// --- 🚨 Gestion des erreurs globales ---
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error("❌ Server Error:", err);
-  const status = err.status || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-});
-
-// --- 📘 Swagger documentation ---
+// --- 🧩 Swagger Docs
 setupSwagger(app);
 
-// --- 🚀 Lancement du serveur ---
-const PORT = process.env.PORT || 5001;
+// --- 🛠️ Gestion des erreurs globales
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error("❌ Erreur serveur:", err.message);
+  res.status(500).json({ message: err.message || "Erreur interne du serveur" });
+});
 
-// ✅ Détection automatique de l’URL selon l’environnement
+// --- 🚀 Lancement du serveur
+const PORT = process.env.PORT || 5001;
 const BASE_URL =
   process.env.NODE_ENV === "production"
     ? process.env.RENDER_EXTERNAL_URL || "https://agrisem.onrender.com"
