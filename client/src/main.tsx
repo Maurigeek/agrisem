@@ -3,37 +3,38 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Démarrage des mocks en dev, avec garde SW + chemin correct
+// 🚀 Fonction d’activation des mocks uniquement en mode développement
 async function enableMocking() {
-  if (!import.meta.env.DEV) return;
+  // ✅ On ne démarre MSW qu’en mode dev
+  if (!import.meta.env.DEV) {
+    console.info("[MSW] Ignoré en production");
+    return;
+  }
 
   const swSupported = "serviceWorker" in navigator;
-  const secure = window.isSecureContext;       // https: ou localhost
-  const isTop = window.top === window;         // évite iframes/overlays
+  const secure = window.isSecureContext; // https ou localhost
+  const isTop = window.top === window;   // pas dans une iframe
 
-  // Seed toujours (même en fallback)
-  const { seedDatabase } = await import("./mocks/seed");
-  seedDatabase();
-
+  // Mock uniquement si service worker dispo
   if (swSupported && secure && isTop) {
     const { worker } = await import("./mocks/browser");
-    // IMPORTANT: base path en fonction de Vite (root=client → public à la racine)
     await worker.start({
       serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
       onUnhandledRequest: "bypass",
     });
-    console.info("[MSW] Service worker started");
+    console.info("[MSW] Service worker démarré");
   } else {
-    console.warn("[MSW] SW indisponible (iframe/insecure/unsupported). Fallback.");
-    // Optionnel : mettre un fallback fetch mock si besoin
-    // const { startFallbackMocks } = await import("./mocks/fallback");
-    // startFallbackMocks();
+    console.warn("[MSW] SW non disponible, mocks ignorés");
   }
+
+  // Initialisation éventuelle d'une DB mockée locale
+  const { seedDatabase } = await import("./mocks/seed");
+  seedDatabase();
 }
 
-enableMocking().finally(() => {
-  createRoot(document.getElementById("root")!).render(<App />);
-});
-
-
-
+// ⚙️ Démarrage de l’application après initialisation des mocks
+enableMocking()
+  .catch((err) => console.error("[MSW] Init error:", err))
+  .finally(() => {
+    createRoot(document.getElementById("root")!).render(<App />);
+  });

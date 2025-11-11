@@ -19,6 +19,8 @@ app.use(cors({
     "http://localhost:5173", // Frontend local (Vite)
     "https://agrisem.com",   // Frontend en production
     "https://agrisem-backend.onrender.com",
+    "https://agrisem-frontend.onrender.com",
+    "https://agrisem.onrender.com"
   ],
   credentials: true,
 }));
