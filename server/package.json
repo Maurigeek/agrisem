@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx index.ts",
     "build": "esbuild index.ts --platform=node --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "npx prisma migrate deploy && NODE_ENV=production node dist/index.js",
     "db:push": "prisma migrate dev",
     "db:studio": "prisma studio"
   },
