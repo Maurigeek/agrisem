@@ -1,31 +1,7 @@
-
-
+/* ======================================================
+   CONFIG
+====================================================== */
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001/api/v1";
-
-export interface RegisterPayload {
-  firstName: string;
-  lastName: string;
-  orgName?: string;
-  email: string;
-  phone?: string;
-  password: string;
-  role?: "PRODUCER" | "SUPPLIER" | "ADMIN";
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface ResetPasswordPayload {
-  token: string;
-  newPassword: string;
-}
-
-export interface Tokens {
-  accessToken: string;
-  refreshToken?: string;
-}
 
 export interface ApiResponse<T = any> {
   message?: string;
@@ -33,120 +9,131 @@ export interface ApiResponse<T = any> {
   [key: string]: any;
 }
 
-// ======================================================
-// 🔹 Register
-// ======================================================
+async function request(url: string, options: RequestInit = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  // 🚨 Si HTTP code >= 400 → on LÈVE l’erreur
+  if (!res.ok) {
+    const error: any = new Error(data.message || "Erreur serveur");
+    error.status = res.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+/* ======================================================
+   REGISTER
+====================================================== */
 export const register = async (payload: RegisterPayload): Promise<ApiResponse> => {
-  const res = await fetch(`${API_BASE}/auth/register`, {
+  return request(`${API_BASE}/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Login
-// ======================================================
-export const login = async (payload: LoginPayload): Promise<ApiResponse & Tokens> => {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+/* ======================================================
+   LOGIN
+====================================================== */
+export const login = async (
+  payload: LoginPayload
+): Promise<ApiResponse & Tokens> => {
+  return request(`${API_BASE}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Refresh Token
-// ======================================================
+/* ======================================================
+   REFRESH TOKEN
+====================================================== */
 export const refreshToken = async (token: string): Promise<ApiResponse & Tokens> => {
-  const res = await fetch(`${API_BASE}/auth/refresh`, {
+  return request(`${API_BASE}/auth/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken: token }),
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Verify Account (Email link)
-// ======================================================
+/* ======================================================
+   VERIFY ACCOUNT
+====================================================== */
 export const verifyAccount = async (token: string): Promise<ApiResponse> => {
-  const res = await fetch(`${API_BASE}/auth/verify?token=${encodeURIComponent(token)}`);
-  return res.json();
+  return request(`${API_BASE}/auth/verify?token=${encodeURIComponent(token)}`);
 };
 
-// ======================================================
-// 🔹 Request Password Reset
-// ======================================================
+/* ======================================================
+   REQUEST PASSWORD RESET
+====================================================== */
 export const requestPasswordReset = async (email: string): Promise<ApiResponse> => {
-  const res = await fetch(`${API_BASE}/auth/reset`, {
+  return request(`${API_BASE}/auth/reset`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Confirm Password Reset
-// ======================================================
+/* ======================================================
+   CONFIRM RESET
+====================================================== */
 export const resetPasswordConfirm = async (
   payload: ResetPasswordPayload
 ): Promise<ApiResponse> => {
-  const res = await fetch(`${API_BASE}/auth/reset/confirm`, {
+  return request(`${API_BASE}/auth/reset/confirm`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Get Profile (JWT required)
-// ======================================================
+/* ======================================================
+   GET PROFILE
+====================================================== */
 export const getProfile = async (accessToken: string): Promise<ApiResponse> => {
-  const res = await fetch(`${API_BASE}/auth/me`, {
+  return request(`${API_BASE}/auth/me`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  return res.json();
 };
 
-// ======================================================
-// 🔹 Helper : Logout (local only)
-// ======================================================
+/* ======================================================
+   LOGOUT
+====================================================== */
 export const logout = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
 };
 
-// ======================================================
-// 🔹 Helper : Auto-refresh access token
-// ======================================================
+/* ======================================================
+   AUTO REFRESH TOKEN
+====================================================== */
 export const getValidAccessToken = async (): Promise<string | null> => {
   const access = localStorage.getItem("accessToken");
   const refresh = localStorage.getItem("refreshToken");
+
   if (!refresh) return null;
 
   try {
-    // On teste le token courant (simple heuristique)
     const payload = JSON.parse(atob(access!.split(".")[1]));
     const exp = payload.exp * 1000;
     const now = Date.now();
 
-    if (now < exp - 60000) return access; // encore valide pour > 1 min
+    if (now < exp - 60000) return access;
 
-    // Sinon, on régénère
     const data = await refreshToken(refresh);
     if (data.accessToken) {
       localStorage.setItem("accessToken", data.accessToken);
       return data.accessToken;
     }
+
     return null;
   } catch {
     return null;

@@ -51,7 +51,7 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    console.log("✅ Utilisateur créé:", user.id);
+    // console.log("✅ Utilisateur créé:", user.id);
 
     return res.status(201).json({
       message:
@@ -60,12 +60,26 @@ export const register = async (req: Request, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error("🔥 ERREUR SERVER REGISTER:", error); // ← LOG COMPLET
-    return res.status(500).json({
-      message: "Erreur serveur",
-      error: error.message || error,
-    });
+    // console.error("🔥 ERREUR SERVER REGISTER:", error);
+
+    if (error.code === "P2002" && error.meta?.target?.includes("phone")) {
+      return res.status(400).json({
+        message: "Ce numéro de téléphone est déjà utilisé.",
+        field: "phone"
+      });
+    }
+
+    if (error.code === "P2002" && error.meta?.target?.includes("email")) {
+      return res.status(400).json({
+        message: "Cet email est déjà utilisé.",
+        field: "email"
+      });
+    }
+
+    return res.status(500).json({ message: "Erreur serveur" });
   }
+
+
 };
 
 

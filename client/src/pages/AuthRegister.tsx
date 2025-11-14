@@ -43,20 +43,20 @@ export default function AuthRegister() {
     try {
       const res = await registerUser(data);
 
-      if (res?.message) {
-        toast({
-          title: "Inscription réussie",
-          description: res.message,
-        });
-      } else {
-        toast({
-          title: "Inscription réussie",
-          description: "Vérifiez votre e-mail pour confirmer votre compte",
-        });
+      // 🚨 Si le backend renvoie success = false → STOP
+      if (res?.error || res?.status === "error") {
+        throw new Error(res.error || res.message || "Erreur inconnue");
       }
 
+      toast({
+        title: "Inscription réussie",
+        description: res.message || "",
+      });
+
       navigate("/auth/register/success");
+
     } catch (error: any) {
+      // ❌ Pas de redirection en cas d’erreur
       toast({
         title: "Erreur d'inscription",
         description:
@@ -69,6 +69,7 @@ export default function AuthRegister() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-background flex items-center justify-center p-4">
