@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { sendConfirmationEmail, sendResetPasswordEmail } from "../utils/email.js";
-import { LoginSchema, RegisterSchema } from "../schema/user.schema.js";
+import { LoginSchema, RegisterSchema } from "../schema/user.schema";
 
 dotenv.config();
 const prisma = new PrismaClient();

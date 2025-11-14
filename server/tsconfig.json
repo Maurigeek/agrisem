@@ -11,6 +11,15 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "vite.ts"]
+
+  "include": [
+    "./**/*.ts",
+    "../schema/**/*.ts"     
+  ],
+
+  "exclude": [
+    "node_modules",
+    "dist",
+    "vite.ts"
+  ]
 }
