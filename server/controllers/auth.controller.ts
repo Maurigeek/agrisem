@@ -15,15 +15,24 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 // ============================================================
 export const register = async (req: Request, res: Response) => {
   try {
+    console.log("📥 Payload reçu:", req.body); // ← LOG IMPORTANT
+
     const parseResult = RegisterSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ message: "Données invalides", errors: parseResult.error.errors });
+      console.error("❌ Erreur validation ZOD:", parseResult.error.errors);
+      return res.status(400).json({ 
+        message: "Données invalides", 
+        errors: parseResult.error.errors 
+      });
     }
 
     const { email, password, role, firstName, lastName, phone, orgName } = parseResult.data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(400).json({ message: "Email déjà utilisé" });
+    if (existing) {
+      console.error("❌ Email déjà utilisé:", email);
+      return res.status(400).json({ message: "Email déjà utilisé" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -42,17 +51,23 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    // await sendConfirmationEmail(email, verificationToken);
+    console.log("✅ Utilisateur créé:", user.id);
 
     return res.status(201).json({
-      message: "Inscription réussie. Vérifiez votre e-mail pour confirmer votre compte.",
+      message:
+        "Inscription réussie. Vérifiez votre e-mail pour confirmer votre compte.",
       user: { id: user.id, email: user.email, role: user.role },
     });
-  } catch (error) {
-    console.error("Erreur register:", error);
-    return res.status(500).json({ message: "Erreur serveur" });
+
+  } catch (error: any) {
+    console.error("🔥 ERREUR SERVER REGISTER:", error); // ← LOG COMPLET
+    return res.status(500).json({
+      message: "Erreur serveur",
+      error: error.message || error,
+    });
   }
 };
+
 
 // ============================================================
 // 2️⃣  CONNEXION UTILISATEUR
