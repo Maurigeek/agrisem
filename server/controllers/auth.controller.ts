@@ -51,6 +51,8 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
+    // await sendConfirmationEmail(email, verificationToken);
+
     // console.log("✅ Utilisateur créé:", user.id);
 
     return res.status(201).json({
