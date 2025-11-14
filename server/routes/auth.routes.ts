@@ -14,7 +14,7 @@ import {
   LoginSchema,
   RequestPasswordResetSchema,
   ResetPasswordConfirmSchema, 
-} from "../schemas/user.schema.js";
+} from "../schemas/user.schema";
 import { addRouteToSwagger } from "../swagger.js";
 
 const router = Router();

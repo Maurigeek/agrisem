@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { RoleEnum } from "./common";
+import { RoleEnum } from "../schema/common";
+
 
 /* ============================================================
    REGISTER
