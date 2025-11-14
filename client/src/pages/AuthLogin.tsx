@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sprout } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginCredentials } from '@/shared/schema';
+import { LoginSchema, type LoginInput } from "@schema/user.schema";
 import { login as loginUser } from '@/services/authService';
 
 export default function AuthLogin() {
@@ -22,11 +22,11 @@ export default function AuthLogin() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginCredentials>({
-    resolver: zodResolver(loginSchema as any),
+  } = useForm<LoginInput>({
+    resolver: zodResolver(LoginSchema as any),
   });
 
-  const onSubmit = async (data: LoginCredentials) => {
+  const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     try {
       const res = await loginUser(data);

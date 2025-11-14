@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Sprout } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { insertUserSchema, type InsertUser } from '@/shared/schema'
+import { RegisterSchema, type RegisterInput } from "@schema/user.schema";
+
 
 // ✅ On importe le service d'inscription depuis authService
 import { register as registerUser } from '@/services/authService';
@@ -27,8 +28,8 @@ export default function AuthRegister() {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<InsertUser>({
-    resolver: zodResolver(insertUserSchema as any),
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(RegisterSchema as any),
     defaultValues: {
       role: 'PRODUCER',
     },
@@ -37,7 +38,7 @@ export default function AuthRegister() {
   const role = watch('role');
 
   // ✅ On remplace api.post() par registerUser()
-  const onSubmit = async (data: InsertUser) => {
+  const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
     try {
       const res = await registerUser(data);

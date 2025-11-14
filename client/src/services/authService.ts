@@ -1,8 +1,4 @@
-/**
- * Service d'authentification AGRI-SEM
- * Gère toutes les opérations liées à l'utilisateur :
- * inscription, connexion, token, profil, reset password...
- */
+
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001/api/v1";
 
