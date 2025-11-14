@@ -13,7 +13,7 @@ export default function AuthRegisterSuccess() {
           <CardDescription>
             Votre compte a été créé avec succès.
             <br />
-            {/* Consultez votre boîte mail pour confirmer votre inscription avant de vous connecter. */}
+            Consultez votre boîte mail pour confirmer votre inscription avant de vous connecter.
           </CardDescription>
         </CardHeader>
         <CardContent>
