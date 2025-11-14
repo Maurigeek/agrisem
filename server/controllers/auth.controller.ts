@@ -38,11 +38,11 @@ export const register = async (req: Request, res: Response) => {
         lastName,
         phone,
         orgName,
-        isVerified: false,
+        isVerified: true,
       },
     });
 
-    await sendConfirmationEmail(email, verificationToken);
+    // await sendConfirmationEmail(email, verificationToken);
 
     return res.status(201).json({
       message: "Inscription réussie. Vérifiez votre e-mail pour confirmer votre compte.",
