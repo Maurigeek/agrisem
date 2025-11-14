@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RoleEnum } from "../schema/common";
+import { RoleEnum } from "./common";
 
 
 /* ============================================================

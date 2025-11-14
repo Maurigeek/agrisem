@@ -9,7 +9,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
       "@shared": path.resolve(__dirname, "../shared"),
       "@assets": path.resolve(__dirname, "../attached_assets"),
-      "@schema": path.resolve(__dirname, "../schema"),
+      "@schema": path.resolve(__dirname, ".../schema"),
     },
   },
   root: ".", // le dossier courant est la racine

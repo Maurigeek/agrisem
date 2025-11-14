@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sprout } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoginSchema, type LoginInput } from "@schema/user.schema";
+import { LoginSchema, type LoginInput } from "@schemas/user.schema";
 import { login as loginUser } from '@/services/authService';
 
 export default function AuthLogin() {

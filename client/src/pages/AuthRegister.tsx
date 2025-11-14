@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Sprout } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RegisterSchema, type RegisterInput } from "@schema/user.schema";
+import { RegisterSchema, type RegisterInput } from "@schemas/user.schema";
 
 
 // ✅ On importe le service d'inscription depuis authService
