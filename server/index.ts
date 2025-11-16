@@ -14,7 +14,8 @@ const prisma = new PrismaClient();
 
 // --- 🌍 FRONTEND autorisés (production + local)
 const allowedOrigins = [
-  "http://localhost:5173",                // local dev
+  "http://localhost:5173", 
+  "http://localhost:5001",              // local dev
   "https://agrisem.com",                  // domaine officiel
   "https://agrisem-frontend.onrender.com",// frontend Render
   "https://agrisem.onrender.com"          // backend Render (Swagger)

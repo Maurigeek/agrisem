@@ -1,10 +1,26 @@
 import { db } from './db';
 import type { Role, ProductStatus, ArticleStatus, OrderStatus, Product } from '@/shared/schema';
 
+// Mapping images basé sur les cultures
+export const productImages: Record<number, string> = {
+  1: '/images/products/aubergine.jpg',
+  2: '/images/products/carotte.jpeg',
+  3: '/images/products/tomate.jpg',
+  4: '/images/products/oignon.jpeg',
+  5: '/images/products/gombo.jpeg',
+  6: '/images/products/piment.jpeg',
+  7: '/images/products/laitue.jpeg',
+  8: '/images/products/concombre.jpeg',
+  9: '/images/products/chou.jpeg',
+  10: '/images/products/betterave.jpeg',
+  11: '/images/products/riz.jpeg',
+  12: '/images/products/mais.jpeg',
+};
+
 export function seedDatabase() {
   console.log('🌱 Seeding database...');
 
-  // Clear existing data
+  // Reset database
   db.reset();
 
   // ====================
@@ -75,176 +91,225 @@ export function seedDatabase() {
   db.users = users;
 
   // ====================
-  // CULTURES
+  // CULTURES (12 CULTURES)
+  // ID = index + 1 pour correspondre au productImages
   // ====================
   const cultures = [
-    { id: db.getNextCultureId(), name: 'Maïs', code: 'MAIS' },
-    { id: db.getNextCultureId(), name: 'Riz', code: 'RIZ' },
+    { id: db.getNextCultureId(), name: 'Aubergine africaine', code: 'AUBERGINE' },
+    { id: db.getNextCultureId(), name: 'Carotte', code: 'CAROTTE' },
     { id: db.getNextCultureId(), name: 'Tomate', code: 'TOMATE' },
     { id: db.getNextCultureId(), name: 'Oignon', code: 'OIGNON' },
     { id: db.getNextCultureId(), name: 'Gombo', code: 'GOMBO' },
     { id: db.getNextCultureId(), name: 'Piment', code: 'PIMENT' },
+    { id: db.getNextCultureId(), name: 'Laitue', code: 'LAITUE' },
+    { id: db.getNextCultureId(), name: 'Concombre', code: 'CONCOMBRE' },
+    { id: db.getNextCultureId(), name: 'Chou', code: 'CHOU' },
+    { id: db.getNextCultureId(), name: 'Betterave', code: 'BETTERAVE' },
+    { id: db.getNextCultureId(), name: 'Riz', code: 'RIZ' },
+    { id: db.getNextCultureId(), name: 'Maïs', code: 'MAIS' },
   ];
 
   db.cultures = cultures;
 
   // ====================
-  // VARIETIES
+  // VARIETIES (1–2 PAR CULTURE)
   // ====================
   const varieties = [
-    // Maïs (culture 1)
+    // Aubergine africaine (1)
     {
       id: db.getNextVarietyId(),
       cultureId: 1,
-      name: 'Maïs Hybride FBC6',
-      climateSuitability: { temperature: '25-35°C', rainfall: 'Modéré (600-800mm)', zones: ['Sahel', 'Savane'] },
-      description: 'Variété hybride à haut rendement, résistante à la sécheresse',
-      maturityDays: 90,
+      name: 'Aubergine Africaine Gbagba',
+      description: 'Variété locale très résistante, bien adaptée aux climats chauds.',
+      climateSuitability: { temperature: '22-35°C', rainfall: 'Modéré', zones: ['Savane', 'Sahel'] },
+      maturityDays: 70,
     },
     {
       id: db.getNextVarietyId(),
       cultureId: 1,
-      name: 'Maïs Blanc Précoce',
-      climateSuitability: { temperature: '22-32°C', rainfall: 'Modéré', zones: ['Savane'] },
-      description: 'Variété précoce pour cycles courts',
-      maturityDays: 75,
+      name: 'Aubergine Yantoto',
+      description: 'Variété productive, très utilisée dans la cuisine ouest-africaine.',
+      climateSuitability: { temperature: '22-32°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
+      maturityDays: 65,
     },
 
-    // Riz (culture 2)
+    // Carotte (2)
     {
       id: db.getNextVarietyId(),
       cultureId: 2,
-      name: 'Riz NERICA',
-      climateSuitability: { temperature: '20-30°C', rainfall: 'Élevé (800-1200mm)', zones: ['Toutes zones'] },
-      description: 'Nouvelle variété adaptée à l\'Afrique',
-      maturityDays: 110,
-    },
-    {
-      id: db.getNextVarietyId(),
-      cultureId: 2,
-      name: 'Riz Pluvial',
-      climateSuitability: { temperature: '22-30°C', rainfall: 'Élevé', zones: ['Savane', 'Forêt'] },
-      description: 'Adapté aux zones pluviales',
-      maturityDays: 120,
+      name: 'Carotte Nantes',
+      description: 'Variété sucrée, très populaire pour la consommation fraîche.',
+      climateSuitability: { temperature: '15-28°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
+      maturityDays: 80,
     },
 
-    // Tomate (culture 3)
+    // Tomate (3)
     {
       id: db.getNextVarietyId(),
       cultureId: 3,
       name: 'Tomate Roma',
-      climateSuitability: { temperature: '18-28°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
-      description: 'Excellente pour la transformation',
+      description: 'Utilisée pour purées et sauces, très productive.',
+      climateSuitability: { temperature: '18-30°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
       maturityDays: 70,
     },
     {
       id: db.getNextVarietyId(),
       cultureId: 3,
       name: 'Tomate Cherry',
+      description: 'Tomate sucrée, idéale pour les salades.',
       climateSuitability: { temperature: '20-30°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
-      description: 'Petite tomate sucrée',
       maturityDays: 65,
     },
 
-    // Oignon (culture 4)
+    // Oignon (4)
     {
       id: db.getNextVarietyId(),
       cultureId: 4,
       name: 'Oignon Violet de Galmi',
-      climateSuitability: { temperature: '15-25°C', rainfall: 'Faible à modéré', zones: ['Sahel', 'Savane'] },
-      description: 'Variété locale très appréciée',
+      description: 'Variété phare d’Afrique de l’Ouest, goût doux.',
+      climateSuitability: { temperature: '18-30°C', rainfall: 'Faible à modéré', zones: ['Sahel', 'Savane'] },
       maturityDays: 120,
     },
-    {
-      id: db.getNextVarietyId(),
-      cultureId: 4,
-      name: 'Oignon Blanc',
-      climateSuitability: { temperature: '15-25°C', rainfall: 'Faible', zones: ['Sahel'] },
-      description: 'Oignon blanc à cycle court',
-      maturityDays: 100,
-    },
 
-    // Gombo (culture 5)
+    // Gombo (5)
     {
       id: db.getNextVarietyId(),
       cultureId: 5,
-      name: 'Gombo Vert',
+      name: 'Gombo Vert Classique',
+      description: 'Très apprécié pour les sauces traditionnelles.',
       climateSuitability: { temperature: '25-35°C', rainfall: 'Modéré', zones: ['Savane', 'Sahel'] },
-      description: 'Variété productive',
       maturityDays: 60,
     },
+
+    // Piment (6)
     {
       id: db.getNextVarietyId(),
-      cultureId: 5,
-      name: 'Gombo Nain',
-      climateSuitability: { temperature: '25-35°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
-      description: 'Facile à récolter',
+      cultureId: 6,
+      name: 'Piment Fort Rouge',
+      description: 'Variété très piquante, forte demande au marché.',
+      climateSuitability: { temperature: '20-32°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
+      maturityDays: 90,
+    },
+
+    // Laitue (7)
+    {
+      id: db.getNextVarietyId(),
+      cultureId: 7,
+      name: 'Laitue Batavia',
+      description: 'Très croquante, adaptée aux climats tropicaux.',
+      climateSuitability: { temperature: '15-28°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
       maturityDays: 55,
     },
 
-    // Piment (culture 6)
+    // Concombre (8)
     {
       id: db.getNextVarietyId(),
-      cultureId: 6,
-      name: 'Piment Fort',
+      cultureId: 8,
+      name: 'Concombre Long Green',
+      description: 'Variété longue, très productive.',
       climateSuitability: { temperature: '20-30°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
-      description: 'Très piquant',
+      maturityDays: 55,
+    },
+
+    // Chou (9)
+    {
+      id: db.getNextVarietyId(),
+      cultureId: 9,
+      name: 'Chou Cœur de Bœuf',
+      description: 'Variété ferme, idéale pour la cuisson.',
+      climateSuitability: { temperature: '15-25°C', rainfall: 'Modéré', zones: ['Savane'] },
+      maturityDays: 85,
+    },
+
+    // Betterave (10)
+    {
+      id: db.getNextVarietyId(),
+      cultureId: 10,
+      name: 'Betterave Rouge Africaine',
+      description: 'Très riche en nutriments, adaptée aux sols tropicaux.',
+      climateSuitability: { temperature: '15-28°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
       maturityDays: 90,
     },
+
+    // Riz (11)
     {
       id: db.getNextVarietyId(),
-      cultureId: 6,
-      name: 'Piment Doux',
-      climateSuitability: { temperature: '20-30°C', rainfall: 'Modéré', zones: ['Toutes zones'] },
-      description: 'Goût doux, peu piquant',
-      maturityDays: 85,
+      cultureId: 11,
+      name: 'Riz NERICA',
+      description: 'Variété très productive et résistante.',
+      climateSuitability: { temperature: '20-30°C', rainfall: 'Élevé', zones: ['Toutes zones'] },
+      maturityDays: 110,
+    },
+
+    // Maïs (12)
+    {
+      id: db.getNextVarietyId(),
+      cultureId: 12,
+      name: 'Maïs Jaune Tropical',
+      description: 'Très haut rendement, climat chaud.',
+      climateSuitability: { temperature: '22-35°C', rainfall: 'Modéré', zones: ['Savane', 'Sahel'] },
+      maturityDays: 95,
     },
   ];
 
   db.varieties = varieties;
 
+
   // ====================
-  // PRODUCTS
-  // ====================
-  const products = [];
-  const suppliers = users.filter(u => u.role === 'SUPPLIER' && u.isSupplierVerified);
+// PRODUCTS
+// ====================
+const products: Product[] = [];
+const suppliers = users.filter(u => u.role === 'SUPPLIER' && u.isSupplierVerified);
 
-  // Generate 40+ products
-  varieties.forEach((variety, vIndex) => {
-    const supplier = suppliers[vIndex % suppliers.length];
-    const basePrice = 10000 + (vIndex * 1000);
+// Génération automatique de +40 produits
+varieties.forEach((variety, vIndex) => {
+  const supplier = suppliers[vIndex % suppliers.length];
+  const basePrice = 10000 + (vIndex * 1000);
 
-    // 2-4 products per variety
-    const productsPerVariety = 2 + (vIndex % 3);
-    for (let i = 0; i < productsPerVariety; i++) {
-      const productId = db.getNextProductId();
-      const packages = ['Sac 25kg', 'Sac 20kg', 'Sac 10kg', 'Paquet 500g', 'Paquet 1kg'];
-      const pkg = packages[i % packages.length];
+  // Entre 2 et 4 produits par variété
+  const productsPerVariety = 2 + (vIndex % 3);
 
-      products.push({
-        id: productId,
-        supplierId: supplier.id,
-        varietyId: variety.id,
-        title: `Semences ${variety.name} - ${pkg}`,
-        sku: `SKU-${1000 + productId}`,
-        priceCents: basePrice + (i * 2000),
-        currency: 'XOF',
-        stock: i === 0 ? 0 : 20 + (productId % 50),
-        minOrderQty: 1,
-        images: [`https://picsum.photos/seed/${productId}/800/600`],
-        specs: {
-          germination: `${90 + (productId % 10)}%`,
-          origin: 'Burkina Faso',
-          certification: i % 2 === 0 ? 'Certifié Bio' : 'Certifié Standard',
-          purity: `${95 + (productId % 5)}%`,
-        },
-        status: (i === 0 && vIndex % 5 === 0 ? 'DRAFT' : 'ACTIVE') as ProductStatus,
-        createdAt: new Date(Date.now() - productId * 24 * 60 * 60 * 1000).toISOString(),
-      });
-    }
-  });
+  for (let i = 0; i < productsPerVariety; i++) {
+    const productId = db.getNextProductId();
 
-  db.products = products;
+    const packages = [
+      'Sac 25kg',
+      'Sac 20kg',
+      'Sac 10kg',
+      'Paquet 500g',
+      'Paquet 1kg',
+    ];
+
+    const pkg = packages[i % packages.length];
+
+    // Récupérer l'image correspondant à la cultureId
+    const image = productImages[variety.cultureId] || '/images/products/default.jpg';
+
+    products.push({
+      id: productId,
+      supplierId: supplier.id,
+      varietyId: variety.id,
+      title: `Semences ${variety.name} - ${pkg}`,
+      sku: `SKU-${1000 + productId}`,
+      priceCents: basePrice + (i * 2000),
+      currency: 'XOF',
+      stock: i === 0 ? 0 : 20 + (productId % 50),
+      minOrderQty: 1,
+      images: [image],
+      specs: {
+        germination: `${90 + (productId % 10)}%`,
+        origin: 'Burkina Faso',
+        certification: i % 2 === 0 ? 'Certifié Bio' : 'Certifié Standard',
+        purity: `${95 + (productId % 5)}%`,
+      },
+      status: (i === 0 && vIndex % 5 === 0 ? 'DRAFT' : 'ACTIVE') as ProductStatus,
+      createdAt: new Date(Date.now() - productId * 24 * 60 * 60 * 1000).toISOString(),
+    });
+  }
+});
+
+db.products = products;
+
 
   // ====================
   // ARTICLES
@@ -305,101 +370,111 @@ export function seedDatabase() {
   db.articles = articles;
 
   // ====================
-  // SAMPLE ORDERS
-  // ====================
-  const sampleOrders = [
-    {
-      id: db.getNextOrderId(),
-      buyerId: 1,
-      supplierId: 3,
-      orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
-      totalCents: 45000,
-      currency: 'XOF',
-      paymentMethod: 'MOBILE_MONEY' as const,
-      status: 'PENDING' as OrderStatus,
-      shippingAddressId: 1,
-      notes: 'Livraison rapide si possible',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: db.getNextOrderId(),
-      buyerId: 2,
-      supplierId: 3,
-      orderNumber: `ORD-${(Date.now() + 1).toString().slice(-6)}`,
-      totalCents: 36000,
-      currency: 'XOF',
-      paymentMethod: 'CASH' as const,
-      status: 'CONFIRMED' as OrderStatus,
-      shippingAddressId: 2,
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: db.getNextOrderId(),
-      buyerId: 1,
-      supplierId: 4,
-      orderNumber: `ORD-${(Date.now() + 2).toString().slice(-6)}`,
-      totalCents: 18000,
-      currency: 'XOF',
-      paymentMethod: 'BANK_TRANSFER' as const,
-      status: 'SHIPPED' as OrderStatus,
-      shippingAddressId: 1,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: db.getNextOrderId(),
-      buyerId: 2,
-      supplierId: 4,
-      orderNumber: `ORD-${(Date.now() + 3).toString().slice(-6)}`,
-      totalCents: 25000,
-      currency: 'XOF',
-      paymentMethod: 'MOBILE_MONEY' as const,
-      status: 'DELIVERED' as OrderStatus,
-      shippingAddressId: 2,
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
+// SAMPLE ORDERS
+// ====================
+const sampleOrders = [
+  {
+    id: db.getNextOrderId(),
+    buyerId: 1,
+    supplierId: 3,
+    orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
+    totalCents: 45000,
+    currency: 'XOF',
+    paymentMethod: 'MOBILE_MONEY' as const,
+    status: 'PENDING' as OrderStatus,
+    shippingAddressId: 1,
+    notes: 'Livraison rapide si possible',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: db.getNextOrderId(),
+    buyerId: 2,
+    supplierId: 3,
+    orderNumber: `ORD-${(Date.now() + 1).toString().slice(-6)}`,
+    totalCents: 36000,
+    currency: 'XOF',
+    paymentMethod: 'CASH' as const,
+    status: 'CONFIRMED' as OrderStatus,
+    shippingAddressId: 2,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: db.getNextOrderId(),
+    buyerId: 1,
+    supplierId: 4,
+    orderNumber: `ORD-${(Date.now() + 2).toString().slice(-6)}`,
+    totalCents: 18000,
+    currency: 'XOF',
+    paymentMethod: 'BANK_TRANSFER' as const,
+    status: 'SHIPPED' as OrderStatus,
+    shippingAddressId: 1,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: db.getNextOrderId(),
+    buyerId: 2,
+    supplierId: 4,
+    orderNumber: `ORD-${(Date.now() + 3).toString().slice(-6)}`,
+    totalCents: 25000,
+    currency: 'XOF',
+    paymentMethod: 'MOBILE_MONEY' as const,
+    status: 'DELIVERED' as OrderStatus,
+    shippingAddressId: 2,
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
 
-  db.orders = sampleOrders;
+db.orders = sampleOrders;
 
-  // Order items for sample orders
-  db.orderItems = [
-    {
-      id: db.getNextOrderItemId(),
-      orderId: 1,
-      productId: 1,
-      title: products[0].title,
-      priceCents: products[0].priceCents,
-      qty: 3,
-    },
-    {
-      id: db.getNextOrderItemId(),
-      orderId: 2,
-      productId: 3,
-      title: products[2].title,
-      priceCents: products[2].priceCents,
-      qty: 2,
-    },
-    {
-      id: db.getNextOrderItemId(),
-      orderId: 3,
-      productId: 5,
-      title: products[4].title,
-      priceCents: products[4].priceCents,
-      qty: 1,
-    },
-    {
-      id: db.getNextOrderItemId(),
-      orderId: 4,
-      productId: 7,
-      title: products[6].title,
-      priceCents: products[6].priceCents,
-      qty: 2,
-    },
-  ];
+// ====================
+// ORDER ITEMS FOR SAMPLE ORDERS
+// ====================
+db.orderItems = [
+  // Items for order 1
+  {
+    id: db.getNextOrderItemId(),
+    orderId: sampleOrders[0].id,
+    productId: products[0].id,
+    title: products[0].title,
+    priceCents: products[0].priceCents,
+    qty: 3,
+  },
+
+  // Items for order 2
+  {
+    id: db.getNextOrderItemId(),
+    orderId: sampleOrders[1].id,
+    productId: products[2].id,
+    title: products[2].title,
+    priceCents: products[2].priceCents,
+    qty: 2,
+  },
+
+  // Items for order 3
+  {
+    id: db.getNextOrderItemId(),
+    orderId: sampleOrders[2].id,
+    productId: products[4].id,
+    title: products[4].title,
+    priceCents: products[4].priceCents,
+    qty: 1,
+  },
+
+  // Items for order 4
+  {
+    id: db.getNextOrderItemId(),
+    orderId: sampleOrders[3].id,
+    productId: products[6].id,
+    title: products[6].title,
+    priceCents: products[6].priceCents,
+    qty: 2,
+  },
+];
+
 
   // ====================
   // SAMPLE THREADS & MESSAGES
