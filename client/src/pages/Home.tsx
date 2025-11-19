@@ -29,7 +29,7 @@ export default function Home() {
   const { data: weatherData } = useQuery({
     queryKey: ['/api/v1/weather'],
     queryFn: () =>
-    fetch("/api/v1/weather").then((r) => r.json()),
+    fetch(`${API_BASE}/weather`).then((r) => r.json()),
   });
 
   // console.log("Weather response:", weatherData);

@@ -7,6 +7,8 @@ const router = express.Router();
 const LAT = 9.34;  
 const LON = 2.62;
 
+
+
 router.get("/weather", async (req, res) => {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Africa%2FLagos`;

@@ -11,7 +11,7 @@ export function BestProducts() {
   const { data, isLoading } = useQuery({
     queryKey: ["/api/v1/products/best"],
         queryFn: async () => {
-        const res = await fetch(`/api/v1/products/best`);
+        const res = await fetch(`${API_BASE}/products/best`);
         return res.json();
         }
 
