@@ -25,14 +25,13 @@ export function BestProducts() {
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <EmptyState
-        icon={Package2}
-        title="Aucun produit mis en avant"
-        description="Les meilleurs produits apparaîtront ici."
-      />
-    );
+  if (!Array.isArray(data)) {
+    console.warn("API Best Products returned invalid data:", data);
+    return <EmptyState 
+      icon={Package2} 
+      title="Pas de produits" 
+      description="Aucun produit disponible pour le moment." 
+    />;
   }
 
   return (
