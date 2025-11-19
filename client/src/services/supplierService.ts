@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001/api/v1";
+const API_BASE = import.meta.env.PROD
+  ? import.meta.env.VITE_API_BASE       
+  : "/api/v1";   
 
 const api = axios.create({
   baseURL: `${API_BASE}/supplier`,
@@ -132,6 +134,13 @@ export const uploadOrderProof = async (orderId: number, file: File, token?: stri
   return res.data?.data || res.data;
 };
 
+
+export const getSupplierStats = async (token?: string) => {
+  const res = await api.get("/stats", withAuth(token));
+  return res.data?.data || res.data;
+};
+
+
 //
 // 🌍 EXPORT GLOBAL
 //
@@ -145,4 +154,5 @@ export default {
   listOrders,
   updateOrderStatus,
   uploadOrderProof,
+  getSupplierStats,
 };

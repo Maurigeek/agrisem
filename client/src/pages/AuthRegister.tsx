@@ -185,7 +185,7 @@ export default function AuthRegister() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+226 XX XX XX XX"
+                placeholder="+229 01 66 66 66"
                 {...register('phone')}
                 data-testid="input-phone"
               />
@@ -200,7 +200,7 @@ export default function AuthRegister() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="mot de passe"
                 {...register('password')}
                 data-testid="input-password"
               />

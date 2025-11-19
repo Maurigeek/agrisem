@@ -1,7 +1,16 @@
 /* ======================================================
    CONFIG
 ====================================================== */
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001/api/v1";
+// BASE API
+const API_BASE = import.meta.env.PROD
+  ? import.meta.env.VITE_API_BASE
+  : "/api/v1";
+
+// BASE MEDIA 
+export const MEDIA_BASE =
+  import.meta.env.VITE_MEDIA_BASE?.replace(/\/$/, "") ||
+  "http://localhost:5001";
+
 
 export interface ApiResponse<T = any> {
   message?: string;
@@ -34,7 +43,7 @@ async function request(url: string, options: RequestInit = {}) {
 /* ======================================================
    REGISTER
 ====================================================== */
-export const register = async (payload: RegisterPayload): Promise<ApiResponse> => {
+export const register = async (payload: any): Promise<ApiResponse> => {
   return request(`${API_BASE}/auth/register`, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -45,7 +54,7 @@ export const register = async (payload: RegisterPayload): Promise<ApiResponse> =
    LOGIN
 ====================================================== */
 export const login = async (
-  payload: LoginPayload
+  payload: any
 ): Promise<ApiResponse & Tokens> => {
   return request(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -84,7 +93,7 @@ export const requestPasswordReset = async (email: string): Promise<ApiResponse> 
    CONFIRM RESET
 ====================================================== */
 export const resetPasswordConfirm = async (
-  payload: ResetPasswordPayload
+  payload: any
 ): Promise<ApiResponse> => {
   return request(`${API_BASE}/auth/reset/confirm`, {
     method: "POST",

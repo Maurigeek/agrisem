@@ -108,7 +108,7 @@ export default function AuthLogin() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="mot de passe"
                 {...register('password')}
                 data-testid="input-password"
               />

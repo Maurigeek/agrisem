@@ -9,6 +9,8 @@ import {
   listOrders,
   updateOrderStatus,
   uploadOrderProof,
+  getSupplierStats,
+  deleteProductImage,
 } from "../controllers/supplier.controller.js";
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import { uploadProductImages, uploadSingleProof } from "../middlewares/upload.js";
@@ -217,6 +219,19 @@ addRouteToSwagger("/supplier/orders/{id}/upload-proof", "post", null, {
   },
 });
 
+
+// 🔹 SUPPLIER STATS
+addRouteToSwagger("/supplier/stats", "get", null, {
+  summary: "Récupérer les statistiques du fournisseur connecté (Dashboard)",
+  tags: ["Supplier"],
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: "Statistiques récupérées avec succès",
+    401:  "Non autorisé" ,
+    500: "Erreur serveur" 
+  }
+});
+
 // --- EXPRESS ROUTES ---
 router.use(verifyToken);
 
@@ -231,5 +246,10 @@ router.post("/products/:id/images", uploadProductImages, addProductImages);
 router.get("/orders", listOrders);
 router.patch("/orders/:id/status", updateOrderStatus);
 router.post("/orders/:id/upload-proof", uploadSingleProof, uploadOrderProof);
+router.delete("/products/:id/images", deleteProductImage);
+
+
+router.get("/stats", getSupplierStats);
+
 
 export default router;

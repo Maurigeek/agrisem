@@ -50,7 +50,7 @@ export default function Checkout() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       paymentMethod: 'CASH',
-      country: 'Burkina Faso',
+      country: 'Bénin',
     },
   });
 
@@ -148,7 +148,7 @@ export default function Checkout() {
             {[
               { key: 'cart', label: 'Panier', icon: ShoppingBag },
               { key: 'address', label: 'Adresse', icon: MapPin },
-              { key: 'payment', label: 'Paiement', icon: CreditCard },
+              // { key: 'payment', label: 'Paiement', icon: CreditCard },
             ].map((s, index) => {
               const isActive = s.key === step;
               const isCompleted = ['cart', 'address', 'payment'].indexOf(step) > index;
@@ -261,7 +261,7 @@ export default function Checkout() {
                         <Label htmlFor="region">Région</Label>
                         <Input
                           id="region"
-                          placeholder="Ex: Centre"
+                          placeholder="Ex: Akpakpa"
                           {...register('region')}
                           data-testid="input-region"
                         />
@@ -273,7 +273,7 @@ export default function Checkout() {
                         <Label htmlFor="city">Ville</Label>
                         <Input
                           id="city"
-                          placeholder="Ex: Ouagadougou"
+                          placeholder="Ex: Cotonou"
                           {...register('city')}
                           data-testid="input-city"
                         />
@@ -294,11 +294,11 @@ export default function Checkout() {
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => setStep('payment')}
+                        // onClick={() => setStep('payment')}
                         className="flex-1"
                         data-testid="button-continue-to-payment"
                       >
-                        Continuer vers le paiement
+                        Valider la commande
                       </Button>
                     </div>
                   </CardContent>
@@ -306,7 +306,7 @@ export default function Checkout() {
               )}
 
               {/* Payment */}
-              {step === 'payment' && (
+              {/* {step === 'payment' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Mode de paiement</CardTitle>
@@ -353,10 +353,10 @@ export default function Checkout() {
                           </Label>
                         </CardContent>
                       </Card>
-                    </RadioGroup>
+                    </RadioGroup> */}
 
                     {/* Payment Proof Upload */}
-                    {(paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') && (
+                    {/* {(paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') && (
                       <div>
                         <Label>Preuve de paiement (optionnel)</Label>
                         <div className="mt-2 border-2 border-dashed rounded-lg p-8 text-center">
@@ -382,10 +382,10 @@ export default function Checkout() {
                           )}
                         </div>
                       </div>
-                    )}
+                    )} */}
 
                     {/* Notes */}
-                    <div>
+                    {/* <div>
                       <Label htmlFor="notes">Notes (optionnel)</Label>
                       <Textarea
                         id="notes"
@@ -414,7 +414,7 @@ export default function Checkout() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              )} */}
             </form>
           </div>
 

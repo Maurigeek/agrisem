@@ -76,3 +76,12 @@ export function useUploadOrderProof() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["supplier-orders"] }),
   });
 }
+
+export function useSupplierStats() {
+  const token = localStorage.getItem("accessToken") || undefined;
+  return useQuery({
+    queryKey: ["supplier-stats"],
+    queryFn: () => supplierService.getSupplierStats(token),
+  });
+}
+

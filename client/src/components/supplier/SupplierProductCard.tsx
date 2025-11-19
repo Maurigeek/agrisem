@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Edit, Trash2, Eye, Package, CheckCircle, XCircle } from "lucide-react";
+import { Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
 import { useUpdateProduct, useDeleteProduct } from "@/hooks/useSupplier";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 type SupplierProduct = {
   id: number;
@@ -24,14 +26,21 @@ interface SupplierProductCardProps {
   onEdit: (product: SupplierProduct) => void;
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+const MEDIA_BASE = import.meta.env.VITE_MEDIA_BASE || "http://localhost:5001";
+
 export function SupplierProductCard({ product, onEdit }: SupplierProductCardProps) {
   const { toast } = useToast();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
+  const qc = useQueryClient();
 
   const [isPreviewOpen, setPreviewOpen] = useState(false);
   const [isActive, setIsActive] = useState(product.status === "ACTIVE");
 
+  /* -----------------------------------------
+     🔄 ACTIVER/DÉSACTIVER LE PRODUIT
+  ----------------------------------------- */
   const handleToggleActive = async (checked: boolean) => {
     try {
       setIsActive(checked);
@@ -39,35 +48,70 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
         id: product.id,
         payload: { status: checked ? "ACTIVE" : "INACTIVE" },
       });
+
       toast({
-        title: checked ? "Produit activé ✅" : "Produit désactivé ❌",
-        description: checked
-          ? `${product.title} est maintenant disponible dans le catalogue.`
-          : `${product.title} est maintenant en rupture.`,
+        title: checked ? "Produit activé" : "Produit désactivé",
+        description: `${product.title} est mis à jour.`,
       });
-    } catch (err) {
+
+      qc.invalidateQueries(["supplier-products"]);
+    } catch {
+      setIsActive(!checked);
       toast({
         title: "Erreur",
-        description: "Impossible de modifier l’état du produit.",
+        description: "Impossible de modifier l'état",
         variant: "destructive",
       });
-      setIsActive(!checked); // revert in case of failure
     }
   };
 
+  /* -----------------------------------------
+     🗑 SUPPRIMER LE PRODUIT
+  ----------------------------------------- */
   const handleDelete = async () => {
     if (!confirm("Voulez-vous vraiment supprimer ce produit ?")) return;
+
     await deleteMutation.mutateAsync(product.id);
     toast({ title: "Produit supprimé 🗑️" });
+    qc.invalidateQueries(["supplier-products"]);
   };
 
+  /* -----------------------------------------
+     🗑 SUPPRIMER UNE IMAGE
+  ----------------------------------------- */
+  const handleRemoveImage = async (imgUrl: string) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      await axios.delete(`${API_BASE}/supplier/products/${product.id}/images`, {
+        data: { imageUrl: imgUrl },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast({ title: "Image supprimée" });
+      qc.invalidateQueries(["supplier-products"]);
+    } catch {
+      toast({
+        title: "Erreur suppression",
+        description: "Impossible de supprimer l'image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /* -----------------------------------------
+     📸 IMAGE PRINCIPALE
+  ----------------------------------------- */
   const imageUrl =
-    product.images?.[0]
-      ? `${import.meta.env.VITE_API_BASE || "http://localhost:8000"}${product.images[0]}`
+    product.images && product.images.length > 0
+      ? `${MEDIA_BASE}${product.images[0]}`
       : "https://via.placeholder.com/400x300";
 
   const formattedPrice = (product.priceCents / 100).toLocaleString("fr-FR");
 
+  /* -----------------------------------------
+     🖼️ RENDER
+  ----------------------------------------- */
   return (
     <>
       <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300">
@@ -85,13 +129,11 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
             >
               {isActive ? (
                 <>
-                  <CheckCircle className="h-3 w-3 text-green-500" />
-                  Actif
+                  <CheckCircle className="h-3 w-3 text-green-500" /> Actif
                 </>
               ) : (
                 <>
-                  <XCircle className="h-3 w-3 text-red-500" />
-                  Inactif
+                  <XCircle className="h-3 w-3 text-red-500" /> Inactif
                 </>
               )}
             </Badge>
@@ -104,9 +146,13 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
 
         <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold">{formattedPrice} {product.currency}</span>
+            <span className="text-xl font-bold">
+              {formattedPrice} {product.currency}
+            </span>
           </div>
+
           <Badge variant={product.stock > 0 ? "default" : "destructive"}>
             {product.stock > 0 ? `Stock: ${product.stock}` : "Rupture"}
           </Badge>
@@ -118,6 +164,7 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
                 {isActive ? "Disponible" : "Indisponible"}
               </span>
             </div>
+
             <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
               <Eye className="h-4 w-4 mr-1" /> Voir
             </Button>
@@ -125,14 +172,10 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
         </CardContent>
 
         <CardFooter className="flex justify-between pt-4 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(product)}
-            className="flex items-center gap-1"
-          >
-            <Edit className="h-4 w-4" /> Modifier
+          <Button variant="outline" size="sm" onClick={() => onEdit(product)}>
+            <Edit className="h-4 w-4 mr-1" /> Modifier
           </Button>
+
           <Button
             variant="destructive"
             size="sm"
@@ -144,26 +187,47 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
         </CardFooter>
       </Card>
 
-      {/* Dialog de prévisualisation */}
+      {/* -----------------------------------------
+          🔍 MODAL DE PRÉVISUALISATION COMPLETTE
+      ----------------------------------------- */}
       <Dialog open={isPreviewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Détails du produit</DialogTitle>
+            <DialogTitle>Images & détails du produit</DialogTitle>
           </DialogHeader>
+
           <div className="space-y-3">
-            <img
-              src={imageUrl}
-              alt={product.title}
-              className="w-full h-64 object-cover rounded-md"
-            />
-            <h3 className="font-semibold text-lg">{product.title}</h3>
+            {/* 🔥 Galerie complète */}
+            <div className="grid grid-cols-3 gap-2">
+              {product.images?.map((img, idx) => (
+                <div key={idx} className="relative">
+                  <img
+                    src={`${MEDIA_BASE}${img}`}
+                    className="w-full h-24 object-cover rounded-md border"
+                  />
+
+                  {/* ❌ bouton suppression */}
+                  <button
+                    onClick={() => handleRemoveImage(img)}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mt-4">{product.title}</h3>
             <p className="text-sm text-muted-foreground">SKU : {product.sku}</p>
+
             <p className="text-base font-semibold">
-              {(product.priceCents / 100).toLocaleString("fr-FR")} {product.currency}
+              {formattedPrice} {product.currency}
             </p>
+
             <p className="text-sm text-muted-foreground">
               {product.stock > 0 ? `${product.stock} en stock` : "Rupture de stock"}
             </p>
+
             <Badge variant={isActive ? "default" : "secondary"}>
               {isActive ? "Actif" : "Inactif"}
             </Badge>

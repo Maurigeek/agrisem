@@ -72,25 +72,72 @@ export const updateProduct = async (req, res) => {
   try {
     const supplierId = req.userId;
     const id = Number(req.params.id);
+
     const existing = await prisma.product.findUnique({ where: { id } });
+
     if (!existing || existing.supplierId !== supplierId) {
       return res.status(404).json({ message: "Produit non trouvé" });
     }
-    const payload = req.body;
-    // convert possible numeric fields
-    if (payload.priceCents) payload.priceCents = Number(payload.priceCents);
-    if (payload.stock) payload.stock = Number(payload.stock);
 
+    const payload = { ...req.body };
+
+    //  Sécuriser les champs numériques
+    const numericFields = ["priceCents", "stock", "minOrderQty"];
+    for (const f of numericFields) {
+      if (payload[f] !== undefined) {
+        const val = Number(payload[f]);
+        payload[f] = isNaN(val) ? existing[f] : val;
+      }
+    }
+
+    //  Sécurisation des images → éviter plantage Prisma
+    let finalImages = [];
+
+    if (Array.isArray(existing.images)) {
+      finalImages = [...existing.images];
+    }
+
+    //  Suppression totale
+    if (payload.removeAllImages === "true") {
+      for (const img of finalImages) {
+        try {
+          const abs = path.join(process.cwd(), img);
+          if (fs.existsSync(abs)) fs.unlinkSync(abs);
+        } catch {}
+      }
+      finalImages = [];
+    }
+
+    //  Suppression d’une seule image
+    if (payload.removeImageUrl) {
+      finalImages = finalImages.filter((img) => img !== payload.removeImageUrl);
+      try {
+        const abs = path.join(process.cwd(), payload.removeImageUrl);
+        if (fs.existsSync(abs)) fs.unlinkSync(abs);
+      } catch {}
+    }
+
+    delete payload.removeAllImages;
+    delete payload.removeImageUrl;
+
+    //  Mise à jour finale PRISMA
     const updated = await prisma.product.update({
       where: { id },
-      data: payload,
+      data: {
+        ...payload,
+        images: finalImages, // toujours un ARRAY JSON valide
+      },
     });
+
     res.json({ data: updated });
+
   } catch (err) {
-    console.error(err);
+    console.error("❌ updateProduct error:", err);
     res.status(500).json({ message: "Erreur mise à jour produit" });
   }
 };
+
+
 
 /**
  * DELETE /supplier/products/:id
@@ -206,3 +253,129 @@ export const uploadOrderProof = async (req, res) => {
     res.status(500).json({ message: "Erreur upload preuve" });
   }
 };
+
+
+// Stats Product 
+
+export const getSupplierStats = async (req, res) => {
+  try {
+    const supplierId = req.userId;
+
+    // 1️⃣ Produits
+    const totalProducts = await prisma.product.count({
+      where: { supplierId },
+    });
+
+    const activeProducts = await prisma.product.count({
+      where: { supplierId, status: "ACTIVE" },
+    });
+
+    const outOfStock = await prisma.product.count({
+      where: { supplierId, stock: 0 },
+    });
+
+    // 2️⃣ Commandes
+    const totalOrders = await prisma.order.count({
+      where: { supplierId },
+    });
+
+    const pendingOrders = await prisma.order.count({
+      where: { supplierId, status: "PENDING" },
+    });
+
+    // 3️⃣ Revenu total
+    const revenue = await prisma.order.aggregate({
+      where: { supplierId, status: { in: ["CONFIRMED", "DELIVERED"] } },
+      _sum: { totalCents: true },
+    });
+
+    const totalRevenue = revenue._sum.totalCents || 0;
+
+    // 4️⃣ Sales by day (7 derniers jours)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const salesRaw = await prisma.order.findMany({
+      where: {
+        supplierId,
+        createdAt: { gte: sevenDaysAgo },
+        status: { in: ["CONFIRMED", "DELIVERED"] }
+      },
+      select: {
+        createdAt: true,
+        totalCents: true,
+      },
+    });
+
+    const salesByDay = {};
+
+    for (const sale of salesRaw) {
+      const day = sale.createdAt.toISOString().split("T")[0];
+      salesByDay[day] = (salesByDay[day] || 0) + sale.totalCents;
+    }
+
+    const salesArray = Object.entries(salesByDay).map(([date, total]) => ({
+      date,
+      total,
+    }));
+
+    // Final response
+    res.json({
+      data: {
+        totalProducts,
+        activeProducts,
+        outOfStock,
+        totalOrders,
+        pendingOrders,
+        totalRevenue,
+        salesByDay: salesArray
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur stats fournisseur" });
+  }
+};
+
+
+export const deleteProductImage = async (req, res) => {
+  try {
+    const supplierId = req.userId;
+    const id = Number(req.params.id);
+    const { imageUrl } = req.body;
+
+    const product = await prisma.product.findUnique({ where: { id } });
+
+    if (!product || product.supplierId !== supplierId) {
+      return res.status(404).json({ message: "Produit non trouvé" });
+    }
+
+    // Convertir JSON Prisma → tableau de strings
+    const images: string[] = Array.isArray(product.images)
+      ? product.images as string[]
+      : [];
+
+    const updatedImages = images.filter((img) => img !== imageUrl);
+
+    // Supprimer physiquement le fichier
+    try {
+      const absolutePath = path.join(process.cwd(), imageUrl);
+      if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+    } catch (e) {
+      console.warn("⚠ Impossible de supprimer physiquement:", e);
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: { images: updatedImages },
+    });
+
+    res.json({ data: updated });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur suppression image" });
+  }
+};
+
