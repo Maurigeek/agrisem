@@ -158,12 +158,12 @@ export function SupplierProductCard({ product, onEdit }: SupplierProductCardProp
           </Badge>
 
           <div className="flex items-center justify-between pt-3 border-t mt-3">
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Switch checked={isActive} onCheckedChange={handleToggleActive} />
               <span className="text-xs text-muted-foreground">
                 {isActive ? "Disponible" : "Indisponible"}
               </span>
-            </div>
+            </div> */}
 
             <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
               <Eye className="h-4 w-4 mr-1" /> Voir

@@ -21,6 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useCreateOrder } from '@/hooks/useCreateOrder';
 
 const checkoutSchema = z.object({
   country: z.string().min(1, 'Pays requis'),
@@ -40,6 +41,8 @@ export default function Checkout() {
   const { toast } = useToast();
   const [step, setStep] = useState<'cart' | 'address' | 'payment' | 'confirmation'>('cart');
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
+
+  const createOrderMutation = useCreateOrder();
 
   const {
     register,
@@ -63,20 +66,66 @@ export default function Checkout() {
     }
   };
 
-  const onSubmit = (data: CheckoutForm) => {
+  // Build items payload from cart store
+  const buildItemsPayload = () => {
+    return items.map(item => ({
+      productId: Number(item.product?.id),
+      qty: Number(item.qty || 1),
+    }));
+  };
+
+  const onSubmit = async (data: CheckoutForm) => {
     if (!user) {
       navigate('/auth/login');
       return;
     }
 
-    // Simulate order creation
-    toast({
-      title: 'Commande créée avec succès',
-      description: `Numéro de commande: #${Date.now().toString().slice(-6)}`,
-    });
+    // pas de produits -> safety
+    if (!items || items.length === 0) {
+      toast({ title: "Panier vide", description: "Ajoutez des produits avant de passer la commande", variant: "destructive" });
+      return;
+    }
 
-    clearCart();
-    setStep('confirmation');
+    // Préparer le payload
+    const payload = {
+      items: buildItemsPayload(),
+      address: {
+        label: data.label,
+        country: data.country,
+        region: data.region,
+        city: data.city,
+      },
+      paymentMethod: data.paymentMethod,
+      notes: data.notes || null,
+    };
+
+    // Lancer la mutation
+    createOrderMutation.mutate(payload as any, {
+      onSuccess: (res: any) => {
+        // res.data contient le(s) commande(s)
+        const created = res?.data || res;
+        // afficher numéro(s) de commande si présent
+        let description = "Commande(s) créée(s) avec succès";
+        if (Array.isArray(created)) {
+          const numbers = created.map((o: any) => o.orderNumber).filter(Boolean);
+          if (numbers.length) description = `Numéros: ${numbers.join(", ")}`;
+        } else if (created.orderNumber) {
+          description = `Numéro: ${created.orderNumber}`;
+        }
+
+        toast({ title: 'Commande créée', description });
+        clearCart();
+        setStep('confirmation');
+      },
+      onError: (err: any) => {
+        const message = err?.message || (err?.errors ? JSON.stringify(err.errors) : 'Erreur création commande');
+        toast({
+          title: 'Erreur',
+          description: String(message),
+          variant: 'destructive'
+        });
+      },
+    });
   };
 
   if (!user) {
@@ -283,6 +332,29 @@ export default function Checkout() {
                       </div>
                     </div>
 
+                    <div>
+                      <Label>Mode de paiement</Label>
+                      <div className="flex gap-4 items-center">
+                        <label className="flex items-center gap-2">
+                          <input type="radio" value="CASH" {...register('paymentMethod')} defaultChecked />
+                          <span className="ml-2">Paiement à la livraison</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" value="MOBILE_MONEY" {...register('paymentMethod')} />
+                          <span className="ml-2">Mobile Money</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" value="BANK_TRANSFER" {...register('paymentMethod')} />
+                          <span className="ml-2">Virement bancaire</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="notes">Notes (optionnel)</Label>
+                      <Textarea id="notes" {...register('notes')} />
+                    </div>
+
                     <div className="flex gap-4">
                       <Button
                         type="button"
@@ -293,128 +365,18 @@ export default function Checkout() {
                         Retour
                       </Button>
                       <Button
-                        type="button"
-                        // onClick={() => setStep('payment')}
+                        type="submit"
                         className="flex-1"
                         data-testid="button-continue-to-payment"
+                        disabled={createOrderMutation.isLoading}
                       >
-                        Valider la commande
+                        {createOrderMutation.isLoading ? "Traitement..." : "Valider la commande"}
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Payment */}
-              {/* {step === 'payment' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Mode de paiement</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <RadioGroup
-                      defaultValue="CASH"
-                      onValueChange={(value) => {
-                        // Update form value
-                      }}
-                    >
-                      <Card className="cursor-pointer hover-elevate">
-                        <CardContent className="flex items-center gap-4 p-4">
-                          <RadioGroupItem value="CASH" id="cash" data-testid="radio-cash" />
-                          <Label htmlFor="cash" className="flex-1 cursor-pointer">
-                            <p className="font-medium">Paiement à la livraison</p>
-                            <p className="text-sm text-muted-foreground">
-                              Payez en espèces lors de la réception
-                            </p>
-                          </Label>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="cursor-pointer hover-elevate">
-                        <CardContent className="flex items-center gap-4 p-4">
-                          <RadioGroupItem value="MOBILE_MONEY" id="mobile" data-testid="radio-mobile-money" />
-                          <Label htmlFor="mobile" className="flex-1 cursor-pointer">
-                            <p className="font-medium">Mobile Money</p>
-                            <p className="text-sm text-muted-foreground">
-                              Orange Money, Moov Money, etc.
-                            </p>
-                          </Label>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="cursor-pointer hover-elevate">
-                        <CardContent className="flex items-center gap-4 p-4">
-                          <RadioGroupItem value="BANK_TRANSFER" id="bank" data-testid="radio-bank-transfer" />
-                          <Label htmlFor="bank" className="flex-1 cursor-pointer">
-                            <p className="font-medium">Virement bancaire</p>
-                            <p className="text-sm text-muted-foreground">
-                              Transfert bancaire direct
-                            </p>
-                          </Label>
-                        </CardContent>
-                      </Card>
-                    </RadioGroup> */}
-
-                    {/* Payment Proof Upload */}
-                    {/* {(paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') && (
-                      <div>
-                        <Label>Preuve de paiement (optionnel)</Label>
-                        <div className="mt-2 border-2 border-dashed rounded-lg p-8 text-center">
-                          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Glissez-déposez votre reçu ou cliquez pour sélectionner
-                          </p>
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={handleFileChange}
-                            className="hidden"
-                            id="payment-proof"
-                            data-testid="input-payment-proof"
-                          />
-                          <Label htmlFor="payment-proof">
-                            <Button type="button" variant="outline" asChild>
-                              <span>Sélectionner un fichier</span>
-                            </Button>
-                          </Label>
-                          {paymentProof && (
-                            <p className="text-sm text-primary mt-2">{paymentProof.name}</p>
-                          )}
-                        </div>
-                      </div>
-                    )} */}
-
-                    {/* Notes */}
-                    {/* <div>
-                      <Label htmlFor="notes">Notes (optionnel)</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Instructions de livraison ou commentaires..."
-                        {...register('notes')}
-                        data-testid="textarea-notes"
-                      />
-                    </div>
-
-                    <div className="flex gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setStep('address')}
-                        data-testid="button-back-to-address"
-                      >
-                        Retour
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1"
-                        data-testid="button-confirm-order"
-                      >
-                        Confirmer la commande
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )} */}
             </form>
           </div>
 
