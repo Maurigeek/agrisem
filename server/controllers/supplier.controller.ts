@@ -81,6 +81,14 @@ export const updateProduct = async (req, res) => {
 
     const payload = { ...req.body };
 
+    // 🔥 Filtrer les champs undefined
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) {
+        delete payload[key];
+      }
+    });
+
+
     //  Sécuriser les champs numériques
     const numericFields = ["priceCents", "stock", "minOrderQty"];
     for (const f of numericFields) {
