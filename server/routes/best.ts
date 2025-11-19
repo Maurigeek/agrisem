@@ -6,30 +6,15 @@ const router = express.Router();
 
 router.get("/best", async (req, res) => {
   try {
-    let orderStats = [];
+    const orderStats = await prisma.orderItem.groupBy({
+      by: ["productId"],
+      _sum: { qty: true },
+      orderBy: { _sum: { qty: "desc" } },
+      take: 4,
+    });
 
-    try {
-      orderStats = await prisma.orderItem.groupBy({
-        by: ["productId"],
-        _sum: { qty: true },
-        orderBy: [
-          { _sum: { qty: "desc" } },  // <- 🔥 Correction principale
-        ],
-        take: 4,
-      });
-    } catch (err) {
-      console.warn("⚠️ Prisma groupBy failed (probably empty table):", err.message);
-      orderStats = [];
-    }
-
-    // 🔥 Si aucune vente → prendre les derniers produits actifs
     if (orderStats.length === 0) {
-      const fallback = await prisma.product.findMany({
-        where: { status: "ACTIVE" },
-        orderBy: { createdAt: "desc" },
-        take: 4,
-      });
-      return res.json(fallback);
+      return res.json([]);  // PAS product not found !!
     }
 
     const productIds = orderStats.map((s) => s.productId);
@@ -39,16 +24,14 @@ router.get("/best", async (req, res) => {
       include: { variety: true },
     });
 
-    // Reordonner selon les ventes
-    const ordered = productIds
-      .map((id) => products.find((p) => p.id === id))
-      .filter(Boolean);
+    const ordered = productIds.map((id) =>
+      products.find((p) => p.id === id)
+    );
 
     res.json(ordered);
-
   } catch (err) {
-    console.error("❌ Best products fatal error:", err);
-    res.json([]); // On renvoie toujours un tableau
+    console.error(err);
+    res.status(500).json({ error: "Failed to load best products" });
   }
 });
 
