@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useCartStore, useAuthStore } from '@/lib/store';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,6 +44,17 @@ export default function Checkout() {
 
   const createOrderMutation = useCreateOrder();
 
+  const [location] = useLocation();
+  const params = new URLSearchParams(location.split('?')[1]);
+  const forcedStep = params.get('step');
+
+useEffect(() => {
+  if (forcedStep === 'address' && user) {
+    setStep('address');
+  }
+}, [forcedStep, user]);
+
+
   const {
     register,
     handleSubmit,
@@ -68,25 +79,30 @@ export default function Checkout() {
 
   // Build items payload from cart store
   const buildItemsPayload = () => {
+    // IMPORTANT: backend can fetch current price & supplier from DB using productId.
+    // But if your store already contains product.priceCents and product.supplierId,
+    // include them to save a DB read and for optimistic checks.
     return items.map(item => ({
-      productId: Number(item.product?.id),
+      productId: Number(item.product?.id || item.productId),
       qty: Number(item.qty || 1),
+      // Optional extras (if available)
+      priceCents: item.product?.priceCents ?? undefined,
+      supplierId: item.product?.supplierId ?? undefined,
     }));
   };
 
   const onSubmit = async (data: CheckoutForm) => {
+    // Keep UX: if user not logged → redirect to login (same as before)
     if (!user) {
       navigate('/auth/login');
       return;
     }
 
-    // pas de produits -> safety
     if (!items || items.length === 0) {
       toast({ title: "Panier vide", description: "Ajoutez des produits avant de passer la commande", variant: "destructive" });
       return;
     }
 
-    // Préparer le payload
     const payload = {
       items: buildItemsPayload(),
       address: {
@@ -99,12 +115,10 @@ export default function Checkout() {
       notes: data.notes || null,
     };
 
-    // Lancer la mutation
-    createOrderMutation.mutate(payload as any, {
+    createOrderMutation.mutate(payload, {
       onSuccess: (res: any) => {
-        // res.data contient le(s) commande(s)
-        const created = res?.data || res;
-        // afficher numéro(s) de commande si présent
+        // backend returns orders created
+        const created = res?.orders || res?.data || res;
         let description = "Commande(s) créée(s) avec succès";
         if (Array.isArray(created)) {
           const numbers = created.map((o: any) => o.orderNumber).filter(Boolean);
@@ -124,25 +138,25 @@ export default function Checkout() {
           description: String(message),
           variant: 'destructive'
         });
-      },
+      }
     });
   };
 
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <EmptyState
-          icon={ShoppingBag}
-          title="Connexion requise"
-          description="Veuillez vous connecter pour passer une commande"
-          action={{
-            label: 'Se connecter',
-            onClick: () => navigate('/auth/login'),
-          }}
-        />
-      </div>
-    );
-  }
+  // if (!user) {
+  //   return (
+  //     <div className="container mx-auto px-4 py-16">
+  //       <EmptyState
+  //         icon={ShoppingBag}
+  //         title="Connexion requise"
+  //         description="Veuillez vous connecter pour passer une commande"
+  //         action={{
+  //           label: 'Se connecter',
+  //           onClick: () => navigate('/auth/login'),
+  //         }}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (items.length === 0 && step !== 'confirmation') {
     return (
@@ -263,12 +277,18 @@ export default function Checkout() {
                     ))}
                     <Button
                       type="button"
-                      onClick={() => setStep('address')}
+                      onClick={() => {
+                        if (!user) {
+                          navigate('/auth/login?redirect='+encodeURIComponent('/checkout?step=address'));
+                          return;
+                        }
+                        setStep('address');
+                      }}
                       className="w-full"
-                      data-testid="button-continue-to-address"
                     >
                       Continuer vers l'adresse
                     </Button>
+
                   </CardContent>
                 </Card>
               )}

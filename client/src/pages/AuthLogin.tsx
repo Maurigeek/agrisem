@@ -13,10 +13,17 @@ import { LoginSchema, type LoginInput } from "@/schemas/user.schema";
 import { login as loginUser } from '@/services/authService';
 
 export default function AuthLogin() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { setAuth } = useAuthStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Lire redirect de l’URL
+  const search = window.location.search;
+  const params = new URLSearchParams(search);
+
+  const redirect = params.get('redirect') || '/dashboard';
+
 
   const {
     register,
@@ -44,6 +51,11 @@ export default function AuthLogin() {
       setAuth(user, accessToken);
       toast({ title: "Connexion réussie", description: `Bienvenue, ${user.firstName || 'utilisateur'} 👋` });
 
+      // ✅ PRIORITÉ : Retour à la page d’origine (panier/checkout)
+      if (redirect) {
+        navigate(redirect);
+        return;
+      }
       // ✅ Redirection selon le rôle utilisateur
       switch (user.role) {
         case "SUPPLIER":

@@ -6,6 +6,10 @@ import { WeatherWidget } from '@/components/weather/WeatherWidget';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { BestProducts } from '@/components/home/BestProducts';
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { WeatherPanel } from '@/components/weather/WeatherPanel';
+
+
 
 // Images du carrousel Hero
 const heroImages = [
@@ -119,7 +123,7 @@ export default function Home() {
       {/* ================================ */}
       {/* 🌦️ WIDGET METEO REALISTE         */}
       {/* ================================ */}
-      <section className="bg-muted/30 py-12">
+      {/* <section className="bg-muted/30 py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-8">Prévisions Météorologiques</h2>
           {weatherData ? (
@@ -128,10 +132,24 @@ export default function Home() {
               cumulativeRainfall={weatherData.cumulativeRainfall}
             />
           ) : (
-            <p className="text-muted-foreground">Chargement...</p>
+             <div className="w-full flex justify-center py-12">
+              <LoadingSpinner />
+            </div>
           )}
         </div>
-      </section>
+      </section> */}
+
+
+<section className="bg-muted/30 py-12">
+  <div className="container mx-auto px-4">
+    <h2 className="text-3xl font-bold mb-2">Prévisions Météorologiques</h2>
+    <p className="text-muted-foreground mb-8">
+      Pour votre zone — détection automatique. Vous pouvez aussi sélectionner une ville.
+    </p>
+    <WeatherPanel />
+  </div>
+</section>
+
       
       {/* ================================ */}
       {/* 🌟 MEILLEURS PRODUITS */}

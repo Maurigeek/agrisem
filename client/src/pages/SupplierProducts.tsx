@@ -11,6 +11,7 @@ import { Plus, ImagePlus, X } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Package2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import {
   Dialog,
@@ -205,7 +206,9 @@ export default function SupplierProducts() {
       {/* LISTE DES PRODUITS */}
       <div className="container mx-auto px-4 py-8">
         {isLoading ? (
-          <p>Chargement...</p>
+           <div className="w-full flex justify-center py-12">
+            <LoadingSpinner />
+          </div>
         ) : products.length === 0 ? (
           <EmptyState
             icon={Package2}

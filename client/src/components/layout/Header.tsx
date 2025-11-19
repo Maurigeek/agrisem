@@ -132,9 +132,22 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => navigate('/auth/login')} data-testid="button-login">
+              <Button
+                variant="ghost"
+                data-testid="button-login"
+                onClick={() => {
+                  const path = window.location.pathname;
+                  if (path === '/checkout') {
+                    navigate('/auth/login?redirect='+encodeURIComponent('/checkout?step=address'));
+                  } else {
+                    navigate('/auth/login');
+                  }
+                }}
+              >
                 Connexion
               </Button>
+
+
             )}
 
             {/* Mobile Menu */}

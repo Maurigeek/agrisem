@@ -5,8 +5,12 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth.routes.js";
 import supplierRouter from "./routes/supplier.routes.js";
-import weatherRoutes from "./routes/weather.js";
+// import weatherRoutes from "./routes/weather.js";
 import bestProductsRoutes from "./routes/best.js";
+import publicRoutes from "./routes/public.routes.js";
+import ordersRoutes from "./routes/order.routes.js";
+import weatherRoutes from "./routes/weather.routes.js";
+
 
 import { setupSwagger } from "./swagger.js";
 import path from "path";
@@ -61,8 +65,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // --- Routes principales
-app.use("/api/v1", weatherRoutes);
+// app.use("/api/v1", weatherRoutes);
+app.use("/api/v1/weather", weatherRoutes);
 app.use("/api/v1/products", bestProductsRoutes);
+app.use("/api/v1", publicRoutes);
+app.use("/api/v1", ordersRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/supplier", supplierRouter);
 

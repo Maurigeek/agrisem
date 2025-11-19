@@ -56,7 +56,7 @@ enum AlertChannel {
 }
 
 ////////////////////////////////////////////////////////////
-// USER & RELATED MODELS
+// USER
 ////////////////////////////////////////////////////////////
 
 model User {
@@ -89,12 +89,19 @@ model User {
   articles        Article[]
   buyerThreads    MessageThread[] @relation("BuyerThreads")
   supplierThreads MessageThread[] @relation("SupplierThreads")
+
+  orderAddresses  OrderAddress[]  @relation("ProducerOrderAddresses")
 }
+
+////////////////////////////////////////////////////////////
+// ADDRESS (Saved user addresses)
+////////////////////////////////////////////////////////////
 
 model Address {
   id        Int     @id @default(autoincrement())
   user      User    @relation(fields: [userId], references: [id])
   userId    Int
+
   label     String?
   country   String
   region    String?
@@ -103,12 +110,28 @@ model Address {
   longitude Float?
   isDefault Boolean @default(false)
 
-  // ✅ inverse relation vers Order
-  orders Order[]
+  orders    Order[] // relation shippingAddressId
 }
 
 ////////////////////////////////////////////////////////////
-// CATALOGUE: CULTURE / VARIETY / PRODUCT
+// ORDER SHIPPING ADDRESS (Address used at checkout)
+////////////////////////////////////////////////////////////
+
+model OrderAddress {
+  id          Int    @id @default(autoincrement())
+  producer    User   @relation("ProducerOrderAddresses", fields: [producerId], references: [id])
+  producerId  Int
+
+  label       String
+  country     String
+  region      String
+  city        String
+
+  orders      Order[]
+}
+
+////////////////////////////////////////////////////////////
+// CATALOG
 ////////////////////////////////////////////////////////////
 
 model Culture {
@@ -133,8 +156,10 @@ model Product {
   id          Int           @id @default(autoincrement())
   supplier    User          @relation("SupplierProducts", fields: [supplierId], references: [id])
   supplierId  Int
+
   variety     Variety?       @relation(fields: [varietyId], references: [id])
   varietyId   Int?
+
   title       String
   sku         String        @unique
   priceCents  Int
@@ -146,13 +171,12 @@ model Product {
   status      ProductStatus @default(ACTIVE)
   createdAt   DateTime      @default(now())
 
-  // ✅ inverse relations
   cartItems  CartItem[]
   orderItems OrderItem[]
 }
 
 ////////////////////////////////////////////////////////////
-// CART & ORDER
+// CART
 ////////////////////////////////////////////////////////////
 
 model Cart {
@@ -165,46 +189,65 @@ model Cart {
 
 model CartItem {
   id        Int     @id @default(autoincrement())
-  cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
-  product   Product @relation(fields: [productId], references: [id])
+  cart      Cart    @relation(fields: [cartId], references: [id])
+
   productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
   qty       Int
 }
+
+////////////////////////////////////////////////////////////
+// ORDER (PRODUCER buying from SUPPLIER)
+////////////////////////////////////////////////////////////
 
 model Order {
   id                Int           @id @default(autoincrement())
   orderNumber       String        @unique
+
   buyer             User          @relation("BuyerOrders", fields: [buyerId], references: [id])
   buyerId           Int
+
   supplier          User          @relation("SupplierOrders", fields: [supplierId], references: [id])
   supplierId        Int
+
   totalCents        Int
   currency          String
   paymentMethod     PaymentMethod
   paymentProofUrl   String?
+
   status            OrderStatus   @default(PENDING)
+
   shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id])
   shippingAddressId Int?
+
+  orderAddress      OrderAddress? @relation(fields: [orderAddressId], references: [id])
+  orderAddressId    Int?
+
   notes             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+
   items             OrderItem[]
 }
 
 model OrderItem {
   id         Int     @id @default(autoincrement())
-  order      Order   @relation(fields: [orderId], references: [id])
+
   orderId    Int
-  product    Product @relation(fields: [productId], references: [id])
+  order      Order   @relation(fields: [orderId], references: [id])
+
   productId  Int
+  product    Product @relation(fields: [productId], references: [id])
+
   title      String
   priceCents Int
   qty        Int
 }
 
 ////////////////////////////////////////////////////////////
-// MESSAGING
+// MESSAGING + ALERTS + ARTICLES + AUDIT
 ////////////////////////////////////////////////////////////
 
 model MessageThread {
@@ -222,23 +265,19 @@ model MessageThread {
 
 model Message {
   id          Int           @id @default(autoincrement())
-  thread      MessageThread @relation(fields: [threadId], references: [id])
   threadId    Int
-  sender      User          @relation("UserSentMessages", fields: [senderId], references: [id])
+  thread      MessageThread @relation(fields: [threadId], references: [id])
   senderId    Int
+  sender      User          @relation("UserSentMessages", fields: [senderId], references: [id])
   body        String
   attachments Json?
   createdAt   DateTime      @default(now())
 }
 
-////////////////////////////////////////////////////////////
-// WEATHER ALERTS & ARTICLES
-////////////////////////////////////////////////////////////
-
 model WeatherAlert {
   id         Int          @id @default(autoincrement())
-  user       User         @relation(fields: [userId], references: [id])
   userId     Int
+  user       User         @relation(fields: [userId], references: [id])
   type       AlertType
   threshold  Json?
   channel    AlertChannel
@@ -252,15 +291,11 @@ model Article {
   slug        String    @unique
   bodyMd      String
   tags        String[]
-  author      User      @relation(fields: [authorId], references: [id])
   authorId    Int
+  author      User      @relation(fields: [authorId], references: [id])
   publishedAt DateTime?
   status      String    @default("DRAFT")
 }
-
-////////////////////////////////////////////////////////////
-// AUDIT LOGS
-////////////////////////////////////////////////////////////
 
 model AuditLog {
   id        Int      @id @default(autoincrement())

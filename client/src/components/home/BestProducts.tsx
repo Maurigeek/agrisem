@@ -25,7 +25,7 @@ export function BestProducts() {
     );
   }
 
-  if (!Array.isArray(data)) {
+  if (!data || data.length == 0) {
     console.warn("API Best Products returned invalid data:", data);
     return <EmptyState 
       icon={Package2} 

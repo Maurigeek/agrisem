@@ -22,6 +22,8 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+
 
 export default function DashboardSupplier() {
   
@@ -32,7 +34,9 @@ export default function DashboardSupplier() {
   const { data: orders = [] } = useSupplierOrders();
   const { data: products = [] } = useSupplierProducts();
 
-  if (loadingStats) return <p>Chargement...</p>;
+  if (loadingStats) return <div className="w-full flex justify-center py-12">
+              <LoadingSpinner />
+            </div>;
 
   // === KPI CARDS ===
   const kpiTiles = [

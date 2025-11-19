@@ -1,39 +1,24 @@
-// src/services/orderService.ts
+// client/src/services/orderService.ts
+import axios from "axios";
 const API_BASE = (import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
 
-export type OrderItemInput = {
-  productId: number;
-  qty: number;
+export const createOrder = async (payload: any, token?: string) => {
+  const headers: any = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await axios.post(`${API_BASE}/orders`, payload, { headers });
+  return res.data;
 };
 
-export type CreateOrderPayload = {
-  items: OrderItemInput[];
-  address: {
-    label: string;
-    country: string;
-    region: string;
-    city: string;
-  };
-  paymentMethod: "CASH" | "MOBILE_MONEY" | "BANK_TRANSFER";
-  notes?: string | null;
+export const payOrder = async (orderId: number, body: any, token?: string) => {
+  const headers: any = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await axios.post(`${API_BASE}/orders/${orderId}/pay`, body, { headers });
+  return res.data;
 };
 
-export async function createOrder(payload: CreateOrderPayload, token?: string) {
-  const res = await fetch(`${API_BASE}/orders`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    let json;
-    try { json = JSON.parse(text); } catch { json = { message: text || "Erreur serveur" }; }
-    throw json;
-  }
-
-  return res.json();
-}
+export const cancelOrder = async (orderId: number, token?: string) => {
+  const headers: any = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await axios.post(`${API_BASE}/orders/${orderId}/cancel`, {}, { headers });
+  return res.data;
+};
