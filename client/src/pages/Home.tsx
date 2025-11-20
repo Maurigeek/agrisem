@@ -13,7 +13,7 @@ import { WeatherPanel } from '@/components/weather/WeatherPanel';
 
 // Images du carrousel Hero
 const heroImages = [
-  "/images/semance.jpg",
+  "/images/se.jpg",
 ];
 
 const API_BASE = import.meta.env.VITE_API_BASE;
@@ -50,7 +50,7 @@ export default function Home() {
       {/* ====================== */}
       {/* 🚀 HERO AVEC CAROUSEL */}
       {/* ====================== */}
-      <section className="relative h-[90vh] flex items-center">
+      <section className="relative bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         
         {/* IMAGES */}
         {heroImages.map((img, index) => (
@@ -68,7 +68,7 @@ export default function Home() {
         ))}
 
         {/* OVERLAY */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
         {/* TEXTE */}
         <div className="relative container mx-auto px-4">
