@@ -71,7 +71,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
         {/* TEXTE */}
-        <div className="relative container mx-auto px-4">
+        <div className="relative container mx-auto px-4 py-24 md:py-32">
           <div className="max-w-3xl text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
               Semences Certifiées pour l'Agriculture Moderne
