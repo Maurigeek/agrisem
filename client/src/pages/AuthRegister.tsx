@@ -126,7 +126,7 @@ export default function AuthRegister() {
                 <Label htmlFor="firstName">Prénom</Label>
                 <Input
                   id="firstName"
-                  placeholder="Jean"
+                  placeholder="Votre Prenom"
                   {...register('firstName')}
                   data-testid="input-first-name"
                 />
@@ -139,7 +139,7 @@ export default function AuthRegister() {
                 <Label htmlFor="lastName">Nom</Label>
                 <Input
                   id="lastName"
-                  placeholder="Dupont"
+                  placeholder="Votre Nom"
                   {...register('lastName')}
                   data-testid="input-last-name"
                 />
