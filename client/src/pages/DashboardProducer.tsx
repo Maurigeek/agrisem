@@ -320,7 +320,7 @@ export default function ProducerDashboard() {
             </Card> */}
 
             {/* Advice */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Conseils & bonnes pratiques</CardTitle>
               </CardHeader>
@@ -335,7 +335,7 @@ export default function ProducerDashboard() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Quick actions */}
             <Card>
