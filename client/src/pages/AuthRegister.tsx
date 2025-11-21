@@ -155,7 +155,7 @@ export default function AuthRegister() {
                 <Label htmlFor="orgName">Nom de l'organisation</Label>
                 <Input
                   id="orgName"
-                  placeholder="Semences du Sahel"
+                  placeholder="Nom de votre entreprise"
                   {...register('orgName')}
                   data-testid="input-org-name"
                 />
