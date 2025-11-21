@@ -123,9 +123,9 @@ export function Header() {
                     Tableau de bord
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={() => navigate('/messaging')}>
+                  {/* <DropdownMenuItem onClick={() => navigate('/messaging')}>
                     Messages
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>Déconnexion</DropdownMenuItem>
