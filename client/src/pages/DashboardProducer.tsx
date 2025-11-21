@@ -147,6 +147,8 @@ export default function ProducerDashboard() {
   const { data: articles = [] } = useQuery<Article[]>({
     queryKey: ['articles', 'advice'],
     queryFn: async () => [
+      { id: 1, title: "Protéger vos plants avant la pluie", excerpt: "Découvrez comment éviter la pourriture des racines..." },
+      { id: 2, title: "Rotation de culture pour améliorer le sol", excerpt: "Alternatives et calendrier simple pour le maïs..." },
       ],
     enabled: !!user,
   });
