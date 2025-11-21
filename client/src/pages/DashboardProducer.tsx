@@ -120,16 +120,7 @@ export default function ProducerDashboard() {
   const { data: salesData = [] } = useQuery<SalesPoint[]>({
     queryKey: ['sales-data', user?.id],
     queryFn: async () => [
-      { month: 'Jan', revenue: 45000 },
-      { month: 'Fév', revenue: 52000 },
-      { month: 'Mar', revenue: 48000 },
-      { month: 'Avr', revenue: 61000 },
-      { month: 'Mai', revenue: 58000 },
-      { month: 'Juin', revenue: 65000 },
-      { month: 'Juil', revenue: 72000 },
-      { month: 'Août', revenue: 68000 },
-      { month: 'Sep', revenue: 75000 },
-      { month: 'Oct', revenue: 82000 },
+      
     ],
     enabled: !!user,
   });
@@ -138,22 +129,7 @@ export default function ProducerDashboard() {
   const { data: recentOrders = [] } = useQuery<Order[]>({
     queryKey: ['orders-recent', user?.id],
     queryFn: async () => [
-      {
-        id: 901,
-        orderNumber: 'AG-2025-000901',
-        status: 'DELIVERED',
-        supplier: 'Semences Bénin SARL',
-        total: 125000,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 902,
-        orderNumber: 'AG-2025-000902',
-        status: 'PENDING',
-        supplier: 'AgriTogo',
-        total: 45000,
-        createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-      },
+      
     ],
     enabled: !!user,
   });
@@ -162,20 +138,7 @@ export default function ProducerDashboard() {
   const { data: threads = [] } = useQuery<Thread[]>({
     queryKey: ['threads', user?.id],
     queryFn: async () => [
-      {
-        id: 11,
-        partner: 'Semences Bénin SARL',
-        lastMessage: 'Bonjour, le colis est en route',
-        unreadCount: 1,
-        lastAt: new Date().toISOString(),
-      },
-      {
-        id: 12,
-        partner: 'AgriTogo',
-        lastMessage: 'Pouvez-vous confirmer la réception ?',
-        unreadCount: 0,
-        lastAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
-      },
+      
     ],
     enabled: !!user,
   });
@@ -184,18 +147,13 @@ export default function ProducerDashboard() {
   const { data: articles = [] } = useQuery<Article[]>({
     queryKey: ['articles', 'advice'],
     queryFn: async () => [
-      { id: 1, title: "Protéger vos plants avant la pluie", excerpt: "Découvrez comment éviter la pourriture des racines..." },
-      { id: 2, title: "Rotation de culture pour améliorer le sol", excerpt: "Alternatives et calendrier simple pour le maïs..." },
-    ],
+      ],
     enabled: !!user,
   });
 
 
   // Activity feed (could be derived from webhooks/events in real app)
   const activities: Activity[] = [
-    { id: 1, type: 'order', message: 'Nouvelle commande #AG-2025-000903 reçue', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-    { id: 2, type: 'message', message: 'Nouveau message de Amadou Diallo', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
-    { id: 3, type: 'alert', message: 'Seuil sécheresse franchi (votre village)', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
   ];
 
   /* ---------------------- Mutations ---------------------- */
@@ -233,28 +191,23 @@ export default function ProducerDashboard() {
   const kpiTiles = [
     {
       title: 'Commandes',
-      value: String(stats.ordersCount ?? 0),
+      value: String(0),
       icon: ShoppingCart,
-      trend: { value: 12, isPositive: true },
+      trend: { value:0, isPositive: true },
     },
     {
       title: 'Dépenses',
-      value: `${(stats.expenses ?? 0).toLocaleString('fr-FR')} XOF`,
+      value: `${(0).toLocaleString('fr-FR')} XOF`,
       icon: DollarSign,
-      trend: { value: 8, isPositive: true },
+      trend: { value: 0, isPositive: true },
     },
     {
       title: 'Produits',
-      value: '156',
+      value: '',
       icon: Package,
-      trend: { value: 3, isPositive: true },
+      trend: { value: 0, isPositive: true },
     },
-    {
-      title: 'Alertes météo',
-      value: (stats.weather?.alerts?.length ?? 0) > 0 ? `${stats.weather.alerts.length}` : '0',
-      icon: Bell,
-      trend: { value: 0, isPositive: false },
-    },
+    
   ];
 
   /* ---------------------- Render ---------------------- */
@@ -312,7 +265,7 @@ export default function ProducerDashboard() {
             </Card>
 
             {/* Activity feed */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Activité récente</CardTitle>
               </CardHeader>
@@ -335,13 +288,13 @@ export default function ProducerDashboard() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Right column */}
           <div className="space-y-6">
             {/* Weather */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Météo locale</CardTitle>
               </CardHeader>
@@ -352,17 +305,17 @@ export default function ProducerDashboard() {
                   <Button variant="ghost" onClick={() => (window.location.href = '/articles')}>Voir conseils</Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Messages preview */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Messages</CardTitle>
               </CardHeader>
               <CardContent>
                 <MessagesPanel threads={threads} onOpen={() => setMessagesOpen(true)} />
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Advice */}
             <Card>
@@ -391,7 +344,7 @@ export default function ProducerDashboard() {
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={() => (window.location.href = '/catalog')}>🔍 Explorer le catalogue</Button>
                   <Button onClick={() => setCartOpen(true)}>🛒 Mon panier</Button>
-                  <Button onClick={() => setMessagesOpen(true)}>💬 Messagerie</Button>
+                  {/* <Button onClick={() => setMessagesOpen(true)}>💬 Messagerie</Button> */}
                   <Button onClick={() => setAlertsOpen(true)}>⚠️ Mes alertes</Button>
                 </div>
               </CardContent>

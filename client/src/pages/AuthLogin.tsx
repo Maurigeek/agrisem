@@ -22,7 +22,7 @@ export default function AuthLogin() {
   const search = window.location.search;
   const params = new URLSearchParams(search);
 
-  const redirect = params.get('redirect') || '/dashboard';
+  const redirect = params.get('redirect') ;
 
 
   const {
